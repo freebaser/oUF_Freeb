@@ -1,5 +1,5 @@
 --[[
-	Version: 1.1
+	Version: 1.2.1
 	Supported oUF Version: 1.3.1
 
 	Based Code provided by oUF_Lily
@@ -25,6 +25,14 @@ local texture = "Interface\\AddOns\\oUF_Freeb\\media\\Cabaret"
 local border = "Interface\\AddOns\\oUF_Freeb\\media\\border"
 local font = "Interface\\AddOns\\oUF_Freeb\\media\\font.ttf"
 local height, width = 27, 252
+
+-- Toggle Castbars
+local castBars = true
+local partycastBars = false
+local castsafeZone = false
+
+-- Toggle Raid Power bars
+local raidpowerBars = false
 
 RuneFrame:Hide() --------- Hides the Rune Frame, DKs will need to get a Rune Addon
 
@@ -117,11 +125,15 @@ local updateHealth = function(self, event, unit, bar, min, max)
 			end
 		end
 	end
-	
+
 	-- BarColor
 	--bar:SetStatusBarColor(.3,.3,.3)
-	local x,y,z = oUF.ColorGradient(min/max, .68,.68,.68, .25,.35,.43, .25,.25,.25)
-	bar:SetStatusBarColor(x,y,z)
+	if(max ~= 0)then
+	  x,y,z = self.ColorGradient((min/max), .68,.68,.68, .25,.35,.43, .25,.25,.25)
+  	else
+	  x,y,z = .25,.25,.25
+	end
+	  bar:SetStatusBarColor(x,y,z)
 end
 
 
@@ -141,7 +153,7 @@ end
 local auraIcon = function(self, button, icons)
 	local count = button.count
 	count:ClearAllPoints()
-	count:SetPoint("BOTTOM", button, 3, -4)
+	count:SetPoint("BOTTOM", button, 5, -3)
 	icons.showDebuffType = true
 	button.cd:SetReverse()
 	button.overlay:SetTexture(border)
@@ -168,7 +180,6 @@ local func = function(self, unit)
 	  hp:SetHeight(height - 3)
 	end
 	hp:SetStatusBarTexture(texture)
-	
 	-- Smooth
 	hp.Smooth = true
 
@@ -203,7 +214,7 @@ local func = function(self, unit)
 	self.Health = hp
 	self.OverrideUpdateHealth = updateHealth
 	-- Power
-	if(unit ~= 'targettarget' and not self:GetParent():GetName():match"oUF_Raid") then
+	if not(unit == 'targettarget' or self:GetParent():GetName():match"oUF_Raid") then
 	  local pp = CreateFrame"StatusBar"
 
 	  pp:SetHeight(2)
@@ -215,7 +226,7 @@ local func = function(self, unit)
   	  pp.colorClass = true
 	  pp.colorReaction = true
 	  -- Smooth
-	  pp.Smooth = true
+	  pp.Smooth = false
 
 	  pp:SetParent(self)
 	  pp:SetPoint('TOPRIGHT', self.Health, 'BOTTOMRIGHT', 0, -1)
@@ -238,13 +249,42 @@ local func = function(self, unit)
 	  self.PostUpdatePower = updatePower
 	end
 	
+	-- Raid Power
+	if(raidpowerBars and self:GetParent():GetName():match"oUF_Raid")then
+	  local pp = CreateFrame"StatusBar"
+	  pp:SetHeight(2)
+	  pp:SetStatusBarTexture(texture)
+
+	  pp.frequentUpdates = true
+	  pp.colorTapping = true
+	  pp.colorHappiness = true
+  	  pp.colorClass = true
+	  pp.colorReaction = true
+	  -- Smooth
+	  pp.Smooth = false
+
+	  pp:SetParent(self)
+	  pp:SetPoint('TOPRIGHT', self.Health, 'BOTTOMRIGHT', 0, -1)
+	  pp:SetPoint('TOPLEFT', self.Health, 'BOTTOMLEFT', 0, -1)
+
+	  local ppbg = pp:CreateTexture(nil, "BORDER")
+	  ppbg:SetAllPoints(pp)
+	  ppbg:SetTexture(texture)
+	  ppbg.multiplier = .25
+
+	  pp.bg = ppbg
+	  self.Power = pp
+  	end
+	
+	
 	-- CastBar
-	if(unit ~= "targettarget" and not self:GetParent():GetName():match"oUF_Raid") then
+	if(castBars)then
+	  if not (unit == "targettarget" or self:GetParent():GetName():match"oUF_Raid" or self:GetParent():GetName():match"oUF_Party") then
 		local cb = CreateFrame"StatusBar"
 		cb:SetStatusBarTexture(texture)
 		-- CastBar Color
 		cb:SetStatusBarColor(.9,.7,0)
-		if(unit == 'focus' or unit == 'pet' or self:GetParent():GetName():match"oUF_Party") then
+		if(unit == 'focus' or unit == 'pet') then
 			cb:SetWidth(150)
 		else
 			cb:SetWidth(width)
@@ -265,13 +305,39 @@ local func = function(self, unit)
 		self.Castbar.Time = self.Castbar:CreateFontString(nil, 'OVERLAY')
 		self.Castbar.Time:SetFont(font, 11, "OUTLINE")
 		self.Castbar.Time:SetPoint("RIGHT", self.Castbar, "RIGHT",  -2, 0)
-		if(unit == 'player') then
+		if(castsafeZone and unit == 'player') then
 		  self.Castbar.SafeZone = self.Castbar:CreateTexture(nil,'ARTWORK')
 		  self.Castbar.SafeZone:SetPoint('TOPRIGHT')
 		  self.Castbar.SafeZone:SetPoint('BOTTOMRIGHT')
 		  self.Castbar.SafeZone:SetTexture(texture)
 		  self.Castbar.SafeZone:SetVertexColor(.69,.31,.31)
 		end
+
+	  end
+	
+	  if(partycastBars and self:GetParent():GetName():match"oUF_Party")then
+		local cb = CreateFrame"StatusBar"
+		cb:SetStatusBarTexture(texture)
+		-- CastBar Color
+		cb:SetStatusBarColor(.9,.7,0)
+		cb:SetWidth(150)
+		cb:SetHeight(14)
+		cb:SetParent(self)
+		cb:SetPoint("BOTTOM", 0, -16)
+		cb:SetBackdrop(backdrop)
+		cb:SetBackdropColor(0, 0, 0)
+		cb:SetToplevel(true)
+		self.Castbar = cb
+		self.Castbar.bg = self.Castbar:CreateTexture(nil, 'BORDER')
+		self.Castbar.bg:SetAllPoints(self.Castbar)
+		self.Castbar.bg:SetTexture(.1, .1, .1)
+		self.Castbar.Text = self.Castbar:CreateFontString(nil, "OVERLAY")
+		self.Castbar.Text:SetFont(font, 11, "OUTLINE")
+		self.Castbar.Text:SetPoint("LEFT", self.Castbar, "LEFT", 2, 0)
+		self.Castbar.Time = self.Castbar:CreateFontString(nil, 'OVERLAY')
+		self.Castbar.Time:SetFont(font, 11, "OUTLINE")
+		self.Castbar.Time:SetPoint("RIGHT", self.Castbar, "RIGHT",  -2, 0)
+	  end
 
 	end
 	
@@ -284,12 +350,10 @@ local func = function(self, unit)
 	  leader:SetTexture"Interface\\GroupFrame\\UI-Group-LeaderIcon"
 	  self.Leader = leader
 	  
-	  if(self:GetParent():GetName():match'oUF_Raid' or self:GetParent():GetName():match'oUF_Party') then
-		self.ReadyCheck = hp:CreateTexture(nil, 'OVERLAY')
-		self.ReadyCheck:SetHeight(13)
-		self.ReadyCheck:SetWidth(13)
-		self.ReadyCheck:SetPoint('CENTER', 0, 0)
-	  end
+	  self.ReadyCheck = hp:CreateTexture(nil, 'OVERLAY')
+	  self.ReadyCheck:SetHeight(24)
+	  self.ReadyCheck:SetWidth(24)
+	  self.ReadyCheck:SetPoint('CENTER')
 	  
 	end
 	
@@ -337,13 +401,13 @@ local func = function(self, unit)
 	-- Buffs
 	if(unit == "target") then
 		local buffs = CreateFrame("Frame", nil, self)
-		buffs:SetHeight(24)
-		buffs:SetWidth(6*24)
+		buffs:SetHeight(28)
+		buffs:SetWidth(5*28)
 		buffs.initialAnchor = "TOPLEFT"
 		buffs.num = 20
 		buffs["growth-y"] = "DOWN"
 		buffs:SetPoint("TOPLEFT", self, "TOPRIGHT", 2, 0)
-		buffs.size = 24
+		buffs.size = 28
 		buffs.spacing = 2
 		self.Buffs = buffs
 		-- Combo Points
@@ -356,29 +420,30 @@ local func = function(self, unit)
 	end
 
 	if(unit) then
-		local debuffs = CreateFrame("Frame", nil, self)
-		debuffs:SetHeight(24)
-		debuffs:SetWidth(10*24)
-	if(unit == 'focus') then
+	    local debuffs = CreateFrame("Frame", nil, self)
+	    debuffs:SetHeight(28)
+	    debuffs:SetWidth(9*28)
+	  if(unit == 'focus') then
 		  debuffs:SetPoint("LEFT", self, "RIGHT", 2, 0)
 		  debuffs["growth-x"] = "RIGHT"
 		  debuffs.initialAnchor = "LEFT"
-		elseif(unit == 'player')then
+	  elseif(unit == 'player' or unit == 'targettarget') then
 		  debuffs:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT", 0, 14)
-		  debuffs["growth-y"] = "UP"
 		  debuffs["growth-x"] = "LEFT"
-		  debuffs.initialAnchor = "BOTTOMRIGHT"
-		else
+		  debuffs.initialAnchor = "TOPRIGHT"
+	  else
 		  debuffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 14)
 		  debuffs["growth-y"] = "UP"
 		  debuffs.initialAnchor = "BOTTOMLEFT"
-		  debuffs.num = 40
-		end
-		debuffs.size = 24		debuffs.spacing = 2
-		if(unit == "targettarget" or unit == "focus" or unit == "player" or self:GetParent():GetName():match"oUF_Party") then
-		  debuffs.num = 5
-	  	end
-		self.Debuffs = debuffs
+	  end
+	    debuffs.size = 28		
+	    debuffs.spacing = 2
+	  if(unit == "targettarget" or unit == "focus" or unit == "player") then
+	    debuffs.num = 5
+    	  else
+	    debuffs.num = 40
+	  end
+	    self.Debuffs = debuffs
 	end
 
 	--self.sortAuras = {}
@@ -450,8 +515,13 @@ local func = function(self, unit)
 	  self:SetAttribute('initial-height', height)
 	  self:SetAttribute('initial-width', 150)
 	elseif(self:GetParent():GetName():match"oUF_Raid")then
-	  self:SetAttribute('initial-height', 18)
-	  self:SetAttribute('initial-width', 125)
+	  if(raidpowerBars)then
+	    self:SetAttribute('initial-height', 20)
+	    self:SetAttribute('initial-width', 125)
+    	  else
+	    self:SetAttribute('initial-height', 18)
+	    self:SetAttribute('initial-width', 125)
+	  end
 	else 
 	  self:SetAttribute('initial-height', height)
 	  self:SetAttribute('initial-width', width)
@@ -489,12 +559,16 @@ local partyToggle = CreateFrame('Frame')
 local raid = {}
 for i = 1, 5 do
 	local raidgroup = oUF:Spawn('header', 'oUF_Raid'..i)
-	raidgroup:SetManyAttributes('groupFilter', tostring(i), 'showRaid', true, 'yOffSet', -2)
+	if(raidpowerBars)then
+	  raidgroup:SetManyAttributes('groupFilter', tostring(i), 'showRaid', true, 'yOffSet', -3)
+	else
+	  raidgroup:SetManyAttributes('groupFilter', tostring(i), 'showRaid', true, 'yOffSet', -2)
+	end
 	table.insert(raid, raidgroup)
 	if(i==1) then
-		raidgroup:SetPoint('TOPLEFT', UIParent, 5, -160)
+		raidgroup:SetPoint('TOPLEFT', UIParent, 5, -150)
 	else
-		raidgroup:SetPoint('TOP', raid[i-1], 'BOTTOM', 0, -8)
+		raidgroup:SetPoint('TOP', raid[i-1], 'BOTTOM', 0, -10)
 	end
 end
 
@@ -508,6 +582,7 @@ partyToggle:SetScript('OnEvent', function(self)
 	else
 		self:UnregisterEvent('PLAYER_REGEN_ENABLED')
 		if(GetNumRaidMembers() > 5) then
+			-- Show party in raid?
 			party:Show()
 			for i,v in ipairs(raid) do v:Show() end
 		else
