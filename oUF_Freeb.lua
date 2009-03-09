@@ -1,6 +1,6 @@
 --[[
-	Version: 1.4
-	Supported oUF Version: 1.3.4
+	Version: 1.41
+	Supported oUF Version: 1.3.7
 
 	Based Code provided by oUF_Lily
 
@@ -18,6 +18,7 @@
 	-- oUF_Experience
 	-- oUF_CombatFeedback
 	-- oUF_Smooth
+	-- oUF_RuneBar
 	
 	
 ]]
@@ -35,7 +36,7 @@ local castsafeZone = false
 
 local playerOnlyDebuffs = false --- Only applies to the target frame
 
-RuneFrame:Hide() --------- Hides the Rune Frame, DKs will need to get a Rune Addon
+RuneFrame:Hide()
 
 local backdrop = {
 	bgFile = [=[Interface\ChatFrame\ChatFrameBackground]=],
@@ -420,7 +421,7 @@ local func = function(self, unit)
 	  end
 	    debuffs.size = buffsize		
 	    debuffs.spacing = 1
-	  if(unit == "targettarget" or unit == "focus" or unit == "player") then
+	  if(unit == "targettarget" or unit == "focus" or unit == "player" or unit == "pet") then
 	    debuffs.num = 3
     	  else
 	    debuffs.num = 30
@@ -463,6 +464,28 @@ local func = function(self, unit)
 
 			--self.Swing.disableMelee = true
 			--self.Swing.disableRanged = true
+		end
+
+		if(IsAddOnLoaded('oUF_RuneBar') and class == 'DEATHKNIGHT') then
+			self.RuneBar = {}
+			for i = 1, 6 do
+				self.RuneBar[i] = CreateFrame('StatusBar', nil, self)
+				if(i == 1) then
+					self.RuneBar[i]:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 0, -1)
+				else
+					self.RuneBar[i]:SetPoint('TOPLEFT', self.RuneBar[i-1], 'TOPRIGHT', 1, 0)
+				end
+				self.RuneBar[i]:SetStatusBarTexture(texture)
+				self.RuneBar[i]:SetHeight(5)
+				self.RuneBar[i]:SetWidth(270/6 - 0.85)
+				self.RuneBar[i]:SetBackdrop(backdrop)
+				self.RuneBar[i]:SetBackdropColor(0, 0, 0)
+				self.RuneBar[i]:SetMinMaxValues(0, 1)
+
+				self.RuneBar[i].bg = self.RuneBar[i]:CreateTexture(nil, 'BORDER')
+				self.RuneBar[i].bg:SetAllPoints(self.RuneBar[i])
+				self.RuneBar[i].bg:SetTexture(0.1, 0.1, 0.1)			
+			end
 		end
 
 		-- Experience
