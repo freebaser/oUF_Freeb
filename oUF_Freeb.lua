@@ -1,5 +1,5 @@
 --[[
-	Version: 1.2.1
+	Version: 1.3
 	Supported oUF Version: 1.3.1
 
 	Based Code provided by oUF_Lily
@@ -129,7 +129,7 @@ local updateHealth = function(self, event, unit, bar, min, max)
 	-- BarColor
 	--bar:SetStatusBarColor(.3,.3,.3)
 	if(max ~= 0)then
-	  x,y,z = self.ColorGradient((min/max), .68,.68,.68, .25,.35,.43, .25,.25,.25)
+	  x,y,z = self.ColorGradient((min/max), .25,.35,.43, .25,.35,.43, .25,.25,.25)
   	else
 	  x,y,z = .25,.25,.25
 	end
@@ -153,7 +153,7 @@ end
 local auraIcon = function(self, button, icons)
 	local count = button.count
 	count:ClearAllPoints()
-	count:SetPoint("BOTTOM", button, 5, -3)
+	count:SetPoint("BOTTOM", button, 7, -3)
 	icons.showDebuffType = true
 	button.cd:SetReverse()
 	button.overlay:SetTexture(border)
@@ -177,7 +177,7 @@ local func = function(self, unit)
 	elseif(self:GetParent():GetName():match"oUF_Raid")then
 	  hp:SetHeight(18)
 	else
-	  hp:SetHeight(height - 3)
+	  hp:SetHeight(height*.85)
 	end
 	hp:SetStatusBarTexture(texture)
 	-- Smooth
@@ -200,7 +200,8 @@ local func = function(self, unit)
 
 	-- Health Text
 	local hpp = hp:CreateFontString(nil, "OVERLAY")
-	hpp:SetFont(font, 12, "OUTLINE")
+	hpp:SetFont(font, 12)
+	hpp:SetShadowOffset(1, -1)
 	if(self:GetParent():GetName():match"oUF_Raid" or self:GetParent():GetName():match"oUF_Party")then
 	  hpp:SetTextColor(.9, .3, .4)
 	  hpp:SetPoint("RIGHT", -2, 0)
@@ -217,7 +218,7 @@ local func = function(self, unit)
 	if not(unit == 'targettarget' or self:GetParent():GetName():match"oUF_Raid") then
 	  local pp = CreateFrame"StatusBar"
 
-	  pp:SetHeight(2)
+	  pp:SetHeight(height*.12)
 	  pp:SetStatusBarTexture(texture)
 
 	  pp.frequentUpdates = true
@@ -229,8 +230,9 @@ local func = function(self, unit)
 	  pp.Smooth = false
 
 	  pp:SetParent(self)
-	  pp:SetPoint('TOPRIGHT', self.Health, 'BOTTOMRIGHT', 0, -1)
-	  pp:SetPoint('TOPLEFT', self.Health, 'BOTTOMLEFT', 0, -1)
+	  pp:SetPoint("BOTTOM")
+	  pp:SetPoint("LEFT")
+	  pp:SetPoint("RIGHT")
 
 	  local ppbg = pp:CreateTexture(nil, "BORDER")
 	  ppbg:SetAllPoints(pp)
@@ -239,7 +241,8 @@ local func = function(self, unit)
 	  
 	  -- Power Text
 	  local ppp = pp:CreateFontString(nil, "OVERLAY")
-	  ppp:SetFont(font, 12, "OUTLINE")
+	  ppp:SetFont(font, 12)
+	  ppp:SetShadowOffset(1, -1)
 	  ppp:SetPoint("BOTTOMLEFT",hp,"TOPLEFT", 2, 2)
 	  ppp:SetTextColor(1, 1, 1)
 
@@ -264,8 +267,9 @@ local func = function(self, unit)
 	  pp.Smooth = false
 
 	  pp:SetParent(self)
-	  pp:SetPoint('TOPRIGHT', self.Health, 'BOTTOMRIGHT', 0, -1)
-	  pp:SetPoint('TOPLEFT', self.Health, 'BOTTOMLEFT', 0, -1)
+	  pp:SetPoint("BOTTOM")
+	  pp:SetPoint("LEFT")
+	  pp:SetPoint("RIGHT")
 
 	  local ppbg = pp:CreateTexture(nil, "BORDER")
 	  ppbg:SetAllPoints(pp)
@@ -300,11 +304,21 @@ local func = function(self, unit)
 		self.Castbar.bg:SetAllPoints(self.Castbar)
 		self.Castbar.bg:SetTexture(.1, .1, .1)
 		self.Castbar.Text = self.Castbar:CreateFontString(nil, "OVERLAY")
-		self.Castbar.Text:SetFont(font, 11, "OUTLINE")
+		self.Castbar.Text:SetFont(font, 11)
+		self.Castbar.Text:SetShadowOffset(1, -1)
 		self.Castbar.Text:SetPoint("LEFT", self.Castbar, "LEFT", 2, 0)
 		self.Castbar.Time = self.Castbar:CreateFontString(nil, 'OVERLAY')
-		self.Castbar.Time:SetFont(font, 11, "OUTLINE")
+		self.Castbar.Time:SetFont(font, 11)
+		self.Castbar.Time:SetShadowOffset(1, -1)
 		self.Castbar.Time:SetPoint("RIGHT", self.Castbar, "RIGHT",  -2, 0)
+		self.Castbar.CustomTimeText = function(self, duration)
+                  if self.casting then
+                    self.Time:SetFormattedText("%.1f", self.max - duration)
+                  elseif self.channeling then
+                    self.Time:SetFormattedText("%.1f", duration)
+                  end
+            	end
+		
 		if(castsafeZone and unit == 'player') then
 		  self.Castbar.SafeZone = self.Castbar:CreateTexture(nil,'ARTWORK')
 		  self.Castbar.SafeZone:SetPoint('TOPRIGHT')
@@ -332,11 +346,20 @@ local func = function(self, unit)
 		self.Castbar.bg:SetAllPoints(self.Castbar)
 		self.Castbar.bg:SetTexture(.1, .1, .1)
 		self.Castbar.Text = self.Castbar:CreateFontString(nil, "OVERLAY")
-		self.Castbar.Text:SetFont(font, 11, "OUTLINE")
+		self.Castbar.Text:SetFont(font, 11)
+		self.Castbar.Text:SetShadowOffset(1, -1)
 		self.Castbar.Text:SetPoint("LEFT", self.Castbar, "LEFT", 2, 0)
 		self.Castbar.Time = self.Castbar:CreateFontString(nil, 'OVERLAY')
-		self.Castbar.Time:SetFont(font, 11, "OUTLINE")
+		self.Castbar.Time:SetFont(font, 11)
+		self.Castbar.Time:SetShadowOffset(1, -1)
 		self.Castbar.Time:SetPoint("RIGHT", self.Castbar, "RIGHT",  -2, 0)
+		self.Castbar.CustomTimeText = function(self, duration)
+                  if self.casting then
+                    self.Time:SetFormattedText("%.1f", self.max - duration)
+                  elseif self.channeling then
+                    self.Time:SetFormattedText("%.1f", duration)
+                  end
+            	end
 	  end
 
 	end
@@ -346,9 +369,15 @@ local func = function(self, unit)
 	  local leader = hp:CreateTexture(nil, "OVERLAY")
 	  leader:SetHeight(16)
 	  leader:SetWidth(16)
-	  leader:SetPoint("BOTTOMLEFT", hp, "TOPLEFT", -5, -7)
+	  leader:SetPoint("BOTTOMLEFT", hp, "TOPLEFT", -5, -8)
 	  leader:SetTexture"Interface\\GroupFrame\\UI-Group-LeaderIcon"
 	  self.Leader = leader
+
+	  local masterlooter = hp:CreateTexture(nil, 'OVERLAY')
+	  masterlooter:SetHeight(16)
+	  masterlooter:SetWidth(16)
+	  masterlooter:SetPoint('LEFT', leader, 'RIGHT')
+	  self.MasterLooter = masterlooter
 	  
 	  self.ReadyCheck = hp:CreateTexture(nil, 'OVERLAY')
 	  self.ReadyCheck:SetHeight(24)
@@ -375,8 +404,6 @@ local func = function(self, unit)
 	self:RegisterEvent("RAID_TARGET_UPDATE", updateRIcon)
 	table.insert(self.__elements, updateRIcon)
 	
-
-	
 	if(unit~='player')then
 	-- Name
 	  local name = hp:CreateFontString(nil, "OVERLAY")
@@ -388,7 +415,8 @@ local func = function(self, unit)
 	      name:SetPoint("RIGHT", self, -2, 0)
 	      name:SetJustifyH"RIGHT"
 	  end
-	  name:SetFont(font, 12, "OUTLINE")
+	  name:SetFont(font, 12)
+	  name:SetShadowOffset(1, -1)
  	  name:SetTextColor(1, 1, 1)
 	  self.Info = name
 	  if(unit == 'target')then
@@ -401,18 +429,19 @@ local func = function(self, unit)
 	-- Buffs
 	if(unit == "target") then
 		local buffs = CreateFrame("Frame", nil, self)
-		buffs:SetHeight(28)
-		buffs:SetWidth(5*28)
+		buffs:SetHeight(24)
+		buffs:SetWidth(5*24)
 		buffs.initialAnchor = "TOPLEFT"
 		buffs.num = 20
 		buffs["growth-y"] = "DOWN"
 		buffs:SetPoint("TOPLEFT", self, "TOPRIGHT", 2, 0)
-		buffs.size = 28
+		buffs.size = 24
 		buffs.spacing = 2
 		self.Buffs = buffs
 		-- Combo Points
 		self.CPoints = self:CreateFontString(nil, 'OVERLAY')
-		self.CPoints:SetFont(font, 12, "OUTLINE")
+		self.CPoints:SetFont(font, 12)
+		self.CPoints:SetShadowOffset(1, -1)
 		self.CPoints:SetPoint('RIGHT', self, 'LEFT', -2, 0)
 		self.CPoints:SetTextColor(.8, .8, 0)
 		self.CPoints:SetJustifyH('RIGHT')
@@ -421,27 +450,27 @@ local func = function(self, unit)
 
 	if(unit) then
 	    local debuffs = CreateFrame("Frame", nil, self)
-	    debuffs:SetHeight(28)
-	    debuffs:SetWidth(9*28)
+	    debuffs:SetHeight(24)
+	    debuffs:SetWidth(10*24)
 	  if(unit == 'focus') then
 		  debuffs:SetPoint("LEFT", self, "RIGHT", 2, 0)
 		  debuffs["growth-x"] = "RIGHT"
 		  debuffs.initialAnchor = "LEFT"
 	  elseif(unit == 'player' or unit == 'targettarget') then
-		  debuffs:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT", 0, 14)
+		  debuffs:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT", 0, 15)
 		  debuffs["growth-x"] = "LEFT"
 		  debuffs.initialAnchor = "TOPRIGHT"
 	  else
-		  debuffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 14)
+		  debuffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 15)
 		  debuffs["growth-y"] = "UP"
 		  debuffs.initialAnchor = "BOTTOMLEFT"
 	  end
-	    debuffs.size = 28		
+	    debuffs.size = 24		
 	    debuffs.spacing = 2
 	  if(unit == "targettarget" or unit == "focus" or unit == "player") then
 	    debuffs.num = 5
     	  else
-	    debuffs.num = 40
+	    debuffs.num = 32
 	  end
 	    self.Debuffs = debuffs
 	end
@@ -474,6 +503,7 @@ local func = function(self, unit)
 			self.Experience = CreateFrame('StatusBar', nil, self)
 			self.Experience:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 0, -20)
 			self.Experience:SetStatusBarTexture(texture)
+			self.Experience:SetStatusBarColor(0,.7,1)
 			self.Experience:SetHeight(11)
 			self.Experience:SetWidth((unit == 'pet') and 130 or 220)
 			self.Experience:SetBackdrop(backdrop)
@@ -482,7 +512,8 @@ local func = function(self, unit)
 			self.Experience.Tooltip = true
 
 			self.Experience.Text = self.Experience:CreateFontString(nil, 'OVERLAY')
-			self.Experience.Text:SetFont(font, 10, "OUTLINE")
+			self.Experience.Text:SetFont(font, 10)
+			self.Experience.Text:SetShadowOffset(1, -1)
 			self.Experience.Text:SetPoint('CENTER', self.Experience)
 
 			self.Experience.bg = self.Experience:CreateTexture(nil, 'BORDER')
@@ -496,13 +527,10 @@ local func = function(self, unit)
 	if not (self:GetParent():GetName():match"oUF_Raid" or unit == "player")then
 	  local cbft = hp:CreateFontString(nil, "OVERLAY")
 	  cbft:SetPoint("LEFT", hp, 5, 0)
-	  cbft:SetFont(font, 12, "OUTLINE")
+	  cbft:SetFont(font, 12)
+	  cbft:SetShadowOffset(1, -1)
 	  self.CombatFeedbackText = cbft
 	  self.CombatFeedbackText.maxAlpha = 1
-	end
-
-	if(unit == 'pet') then
-		self:RegisterEvent("UNIT_HAPPINESS", updateName)
 	end
 
 	if(not unit) then
