@@ -1,10 +1,10 @@
 ## Interface: 30000
 ## Title: oUF_Freeb
 ## Author: Freebaser
-## Version: 0.1
+## Version: 1.1
 ## Notes: oUF layout.
 ## Dependencies: oUF
-## OptionalDeps: oUF_DebuffHighlight, oUF_Experience, oUF_CombatFeedback, oUF_HealComm, oUF_Smooth
+## OptionalDeps: oUF_DebuffHighlight, oUF_Experience, oUF_CombatFeedback, oUF_HealComm, oUF_Smooth, oUF_BarFader, oUF_AuraSort
 
 oUF_Freeb.lua
 

@@ -1,0 +1,12 @@
+Version 1.1
+-- Moved aura count position
+-- Disallow vehicle swap(vehicle is now the pet frame)
+-- BarFader support
+-- Adjust Raid Icon size and position
+-- Changed texture and colors a bit
+-- localized font
+-- Changed Unit Name to the new Tag system
+-- Add level to target name
+-- Add resting and pvp icon
+-- Add ReadyCheck
+-- Healthbar color gradient

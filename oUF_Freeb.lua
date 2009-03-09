@@ -1,5 +1,5 @@
 --[[
-	Version: 0.1
+	Version: 1.1
 	Supported oUF Version: 1.3.1
 
 	Based Code provided by oUF_Lily
@@ -12,6 +12,7 @@
 	-- for oUF and oUF_Lily
 
 	Supported Plugins
+	-- oUF_BarFader
 	-- oUF_DebuffHighlight
 	-- oUF_Experience
 	-- oUF_CombatFeedback
@@ -20,10 +21,12 @@
 	
 	
 ]]
-local texture = "Interface\\AddOns\\oUF_Freeb\\media\\statusbar"
+local texture = "Interface\\AddOns\\oUF_Freeb\\media\\Cabaret"
 local border = "Interface\\AddOns\\oUF_Freeb\\media\\border"
+local font = "Interface\\AddOns\\oUF_Freeb\\media\\font.ttf"
+local height, width = 27, 252
 
-local height, width = 25, 252
+RuneFrame:Hide() --------- Hides the Rune Frame, DKs will need to get a Rune Addon
 
 local backdrop = {
 	bgFile = [=[Interface\ChatFrame\ChatFrameBackground]=],
@@ -65,37 +68,6 @@ local function ShortValue(value)
 	end
 end
 
--- Name
-local updateName = function(self, event, unit)
-	if(self.unit == unit) then
-		local r, g, b, t
-		if(UnitIsTapped(unit) and not UnitIsTappedByPlayer(unit) or not UnitIsConnected(unit)) then
-			r, g, b = .6, .6, .6
-		elseif(unit == 'pet') then
-			t = self.colors.happiness[GetPetHappiness()]
-		elseif(UnitIsPlayer(unit)) then
-			local _, class = UnitClass(unit)
-			t = self.colors.class[class]
-		else
-			r, g, b = UnitSelectionColor(unit)
-		end
-
-		if(t) then
-			r, g, b = t[1], t[2], t[3]
-		end
-
-		if(r) then
-			self.Name:SetTextColor(r, g, b)
-		end
-		
-		if(unit == 'player')then
-		  self.Name:SetText()
-	  	else
-		  self.Name:SetText(UnitName(unit))
-	  	end
-	end
-end
-
 -- Icon
 local updateRIcon = function(self, event)
 	local index = GetRaidTargetIndex(self.unit)
@@ -106,6 +78,7 @@ local updateRIcon = function(self, event)
 	end
 end
 
+
 -- Health Function
 local updateHealth = function(self, event, unit, bar, min, max)
 	if(max ~= 0) then
@@ -115,13 +88,13 @@ local updateHealth = function(self, event, unit, bar, min, max)
 	if(not UnitIsConnected(unit)) then
 		bar:SetValue(0)
 		bar.value:SetText('|cffD7BEA5'..'Offline')
-	elseif(unit == 'targettarget' or self:GetParent():GetName():match"oUF_Party") then
+	elseif(unit == 'targettarget') then
 		bar.value:SetText()
 	elseif(UnitIsDead(unit)) then
 		bar.value:SetText('|cffD7BEA5'..'Dead')
 	elseif(UnitIsGhost(unit)) then
 		bar.value:SetText('|cffD7BEA5'..'Ghost')
-	elseif(self:GetParent():GetName():match"oUF_Raid")then
+	elseif(self:GetParent():GetName():match"oUF_Raid" or self:GetParent():GetName():match"oUF_Party")then
 		if(min==max)then
 		  bar.value:SetText()
 		else
@@ -144,17 +117,17 @@ local updateHealth = function(self, event, unit, bar, min, max)
 			end
 		end
 	end
-	self:UNIT_NAME_UPDATE(event, unit)
 	
 	-- BarColor
-	bar:SetStatusBarColor(.15,.15,.15)
+	--bar:SetStatusBarColor(.3,.3,.3)
+	local x,y,z = oUF.ColorGradient(min/max, .68,.68,.68, .25,.35,.43, .25,.25,.25)
+	bar:SetStatusBarColor(x,y,z)
 end
+
 
 -- Power Function
 local updatePower = function(self, event, unit, bar, min, max)
-	if(not UnitIsConnected(unit)) then
-	  bar.value:SetText(0)
-	elseif(min == 0 or UnitIsDead(unit) or UnitIsGhost(unit) or self:GetParent():GetName():match"oUF_Party") then
+	if(min == 0 or UnitIsDead(unit) or UnitIsGhost(unit) or self:GetParent():GetName():match"oUF_Party" or not UnitIsConnected(unit)) then
 	  bar.value:SetText()
   	else
 	  bar.value:SetFormattedText(ShortValue(min))
@@ -164,17 +137,18 @@ local updatePower = function(self, event, unit, bar, min, max)
 	if(color) then bar.value:SetTextColor(color[1], color[2], color[3]) end
 end
 
+-- Aura
 local auraIcon = function(self, button, icons)
 	local count = button.count
 	count:ClearAllPoints()
-	count:SetPoint"BOTTOM"
+	count:SetPoint("BOTTOM", button, 3, -4)
 	icons.showDebuffType = true
 	button.cd:SetReverse()
 	button.overlay:SetTexture(border)
 	button.overlay:SetTexCoord(0, 1, 0, 1)
 	button.overlay.Hide = function(self) self:SetVertexColor(0.25, 0.25, 0.25) end
 end
-
+-- Style
 local func = function(self, unit)
 	self.colors = colors
 	self.menu = menu
@@ -189,11 +163,12 @@ local func = function(self, unit)
 	if(unit == 'targettarget')then
 	  hp:SetHeight(height)
 	elseif(self:GetParent():GetName():match"oUF_Raid")then
-	  hp:SetHeight(20)
+	  hp:SetHeight(18)
 	else
 	  hp:SetHeight(height - 3)
 	end
 	hp:SetStatusBarTexture(texture)
+	
 	-- Smooth
 	hp.Smooth = true
 
@@ -206,15 +181,16 @@ local func = function(self, unit)
 
 	local hpbg = hp:CreateTexture(nil, "BORDER")
 	hpbg:SetAllPoints(hp)
-	hpbg:SetTexture(0.2, 0.2, 0.2)
+	-- Background color
+	hpbg:SetTexture(.1, .1, .1)
 
 	self:SetBackdrop(backdrop)
 	self:SetBackdropColor(0, 0, 0)
+
 	-- Health Text
 	local hpp = hp:CreateFontString(nil, "OVERLAY")
-	
-	hpp:SetFontObject(GameFontNormalSmall)
-	if(self:GetParent():GetName():match"oUF_Raid")then
+	hpp:SetFont(font, 12, "OUTLINE")
+	if(self:GetParent():GetName():match"oUF_Raid" or self:GetParent():GetName():match"oUF_Party")then
 	  hpp:SetTextColor(.9, .3, .4)
 	  hpp:SetPoint("RIGHT", -2, 0)
 	else
@@ -230,7 +206,7 @@ local func = function(self, unit)
 	if(unit ~= 'targettarget' and not self:GetParent():GetName():match"oUF_Raid") then
 	  local pp = CreateFrame"StatusBar"
 
-	  pp:SetHeight(3)
+	  pp:SetHeight(2)
 	  pp:SetStatusBarTexture(texture)
 
 	  pp.frequentUpdates = true
@@ -248,13 +224,13 @@ local func = function(self, unit)
 	  local ppbg = pp:CreateTexture(nil, "BORDER")
 	  ppbg:SetAllPoints(pp)
 	  ppbg:SetTexture(texture)
-	  ppbg.multiplier = 0.2
+	  ppbg.multiplier = .25
 	  
 	  -- Power Text
 	  local ppp = pp:CreateFontString(nil, "OVERLAY")
-   	  ppp:SetFontObject(GameFontNormalSmall)
+	  ppp:SetFont(font, 12, "OUTLINE")
 	  ppp:SetPoint("BOTTOMLEFT",hp,"TOPLEFT", 2, 2)
-	  --ppp:SetTextColor(1, 1, 1)
+	  ppp:SetTextColor(1, 1, 1)
 
 	  pp.value = ppp
 	  pp.bg = ppbg
@@ -282,59 +258,81 @@ local func = function(self, unit)
 		self.Castbar = cb
 		self.Castbar.bg = self.Castbar:CreateTexture(nil, 'BORDER')
 		self.Castbar.bg:SetAllPoints(self.Castbar)
-		self.Castbar.bg:SetTexture(0.2, 0.2, 0.2)
-		self.Castbar.Text = self.Castbar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+		self.Castbar.bg:SetTexture(.1, .1, .1)
+		self.Castbar.Text = self.Castbar:CreateFontString(nil, "OVERLAY")
+		self.Castbar.Text:SetFont(font, 11, "OUTLINE")
 		self.Castbar.Text:SetPoint("LEFT", self.Castbar, "LEFT", 2, 0)
-		self.Castbar.Time = self.Castbar:CreateFontString(nil, 'OVERLAY', "GameFontHighlightSmall")
+		self.Castbar.Time = self.Castbar:CreateFontString(nil, 'OVERLAY')
+		self.Castbar.Time:SetFont(font, 11, "OUTLINE")
 		self.Castbar.Time:SetPoint("RIGHT", self.Castbar, "RIGHT",  -2, 0)
 		if(unit == 'player') then
 		  self.Castbar.SafeZone = self.Castbar:CreateTexture(nil,'ARTWORK')
 		  self.Castbar.SafeZone:SetPoint('TOPRIGHT')
 		  self.Castbar.SafeZone:SetPoint('BOTTOMRIGHT')
-		  self.Castbar.SafeZone:SetHeight(22)
 		  self.Castbar.SafeZone:SetTexture(texture)
 		  self.Castbar.SafeZone:SetVertexColor(.69,.31,.31)
 		end
 
 	end
-
+	
 	-- Leader Icon
 	if(self:GetParent():GetName():match'oUF_Raid' or self:GetParent():GetName():match'oUF_Party' or unit == 'player') then
-	  local leader = self:CreateTexture(nil, "OVERLAY")
+	  local leader = hp:CreateTexture(nil, "OVERLAY")
 	  leader:SetHeight(16)
 	  leader:SetWidth(16)
-	  leader:SetPoint("BOTTOMLEFT", hp, "TOPLEFT", -5, -5)
+	  leader:SetPoint("BOTTOMLEFT", hp, "TOPLEFT", -5, -7)
 	  leader:SetTexture"Interface\\GroupFrame\\UI-Group-LeaderIcon"
 	  self.Leader = leader
+	  
+	  if(self:GetParent():GetName():match'oUF_Raid' or self:GetParent():GetName():match'oUF_Party') then
+		self.ReadyCheck = hp:CreateTexture(nil, 'OVERLAY')
+		self.ReadyCheck:SetHeight(13)
+		self.ReadyCheck:SetWidth(13)
+		self.ReadyCheck:SetPoint('CENTER', 0, 0)
+	  end
+	  
 	end
+	
+	--PvP
+	local pvp = hp:CreateTexture(nil, "OVERLAY")
+	pvp:SetPoint("BOTTOMRIGHT", hp, "TOPRIGHT", 18, -20)
+	pvp:SetHeight(28)
+	pvp:SetWidth(28)
+	self.PvP = pvp
 	
 	-- Raid Icon
 	local ricon = hp:CreateFontString(nil, "OVERLAY")
-	if(self:GetParent():GetName():match"oUF_Party" or self:GetParent():GetName():match"oUF_Raid") then 
-	  ricon:SetPoint("BOTTOMLEFT", hp, "TOPLEFT",  0, 0)
-	else
-	  ricon:SetPoint("CENTER", 0, 0)
-	end
 	ricon:SetFontObject(GameFontNormalSmall)
 	ricon:SetTextColor(1, 1, 1)
+	ricon:SetPoint("CENTER", hp, 0, 12)
+	ricon:SetHeight(24)
+	ricon:SetWidth(24)
 	self.RIcon = ricon
 	self:RegisterEvent("RAID_TARGET_UPDATE", updateRIcon)
 	table.insert(self.__elements, updateRIcon)
+	
 
+	
+	if(unit~='player')then
 	-- Name
-	local name = hp:CreateFontString(nil, "OVERLAY")
-	if(unit == "targettarget" or self:GetParent():GetName():match"oUF_Party") then
-	  name:SetPoint("CENTER")
-	elseif(self:GetParent():GetName():match"oUF_Raid")then
-	  name:SetPoint("LEFT", self, "RIGHT", 2, 0)
-	else
-	  name:SetPoint("RIGHT", self, -2, 0)
-	  name:SetJustifyH"RIGHT"
-	end
-        name:SetFontObject(GameFontNormalSmall)
-	name:SetTextColor(1, 1, 1)
-	self.Name = name
-	self:RegisterEvent('UNIT_NAME_UPDATE', updateName)
+	  local name = hp:CreateFontString(nil, "OVERLAY")
+	  if(unit == "targettarget" or self:GetParent():GetName():match"oUF_Party") then
+	      name:SetPoint("CENTER")
+	    elseif(self:GetParent():GetName():match"oUF_Raid")then
+	      name:SetPoint("LEFT", self, "RIGHT", 2, 0)
+	    else
+	      name:SetPoint("RIGHT", self, -2, 0)
+	      name:SetJustifyH"RIGHT"
+	  end
+	  name:SetFont(font, 12, "OUTLINE")
+ 	  name:SetTextColor(1, 1, 1)
+	  self.Info = name
+	  if(unit == 'target')then
+	    self:Tag(self.Info,'[raidcolor][name] [difficulty][smartlevel][rare]')
+	  else
+	    self:Tag(self.Info,'[raidcolor][name]')
+	  end
+	end 
 
 	-- Buffs
 	if(unit == "target") then
@@ -349,14 +347,15 @@ local func = function(self, unit)
 		buffs.spacing = 2
 		self.Buffs = buffs
 		-- Combo Points
-		self.CPoints = self:CreateFontString(nil, 'OVERLAY', 'GameFontNormal')
+		self.CPoints = self:CreateFontString(nil, 'OVERLAY')
+		self.CPoints:SetFont(font, 12, "OUTLINE")
 		self.CPoints:SetPoint('RIGHT', self, 'LEFT', -2, 0)
 		self.CPoints:SetTextColor(.8, .8, 0)
 		self.CPoints:SetJustifyH('RIGHT')
 		self.CPoints.unit = 'player'
 	end
 
-	if(unit and not self:GetParent():GetName():match"oUF_Raid") then
+	if(unit) then
 		local debuffs = CreateFrame("Frame", nil, self)
 		debuffs:SetHeight(24)
 		debuffs:SetWidth(10*24)
@@ -365,21 +364,35 @@ local func = function(self, unit)
 		  debuffs["growth-x"] = "RIGHT"
 		  debuffs.initialAnchor = "LEFT"
 		elseif(unit == 'player')then
-		  debuffs:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT", 0, 13)
+		  debuffs:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT", 0, 14)
 		  debuffs["growth-y"] = "UP"
 		  debuffs["growth-x"] = "LEFT"
 		  debuffs.initialAnchor = "BOTTOMRIGHT"
 		else
-		  debuffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 13)
+		  debuffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 14)
 		  debuffs["growth-y"] = "UP"
 		  debuffs.initialAnchor = "BOTTOMLEFT"
 		  debuffs.num = 40
 		end
 		debuffs.size = 24		debuffs.spacing = 2
 		if(unit == "targettarget" or unit == "focus" or unit == "player" or self:GetParent():GetName():match"oUF_Party") then
-		  debuffs.num = 3
+		  debuffs.num = 5
 	  	end
 		self.Debuffs = debuffs
+	end
+
+	--self.sortAuras = {}
+	--self.sortAuras.reverse = true
+	--self.sortAuras.selfFirst = true
+	
+
+	if(unit == 'player' and UnitLevel('player') ~= MAX_PLAYER_LEVEL) then
+		self.Resting = self.Power:CreateTexture(nil, 'OVERLAY')
+		self.Resting:SetHeight(18)
+		self.Resting:SetWidth(18)
+		self.Resting:SetPoint('BOTTOMLEFT', -8.5, -8.5)
+		self.Resting:SetTexture('Interface\\CharacterFrame\\UI-StateIcon')
+		self.Resting:SetTexCoord(0,0.5,0,0.421875)
 	end
 
 
@@ -387,8 +400,12 @@ local func = function(self, unit)
 	self.DebuffHighlightBackdrop = true
 	self.DebuffHighlightFilter = true
 
-	-- Experience
-	if(IsAddOnLoaded('oUF_Experience') and unit == "player") then
+	if(unit == 'player' or unit == 'pet') then
+		-- BarFader
+		self.BarFade = true
+
+		-- Experience
+		if(IsAddOnLoaded('oUF_Experience') and unit == 'player') then
 			self.Experience = CreateFrame('StatusBar', nil, self)
 			self.Experience:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 0, -20)
 			self.Experience:SetStatusBarTexture(texture)
@@ -399,19 +416,22 @@ local func = function(self, unit)
 
 			self.Experience.Tooltip = true
 
-			self.Experience.Text = self.Experience:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
+			self.Experience.Text = self.Experience:CreateFontString(nil, 'OVERLAY')
+			self.Experience.Text:SetFont(font, 10, "OUTLINE")
 			self.Experience.Text:SetPoint('CENTER', self.Experience)
 
 			self.Experience.bg = self.Experience:CreateTexture(nil, 'BORDER')
 			self.Experience.bg:SetAllPoints(self.Experience)
-			self.Experience.bg:SetTexture(0.3, 0.3, 0.3)
+			self.Experience.bg:SetTexture(0.25, 0.25, 0.25)
+		end
+
 	end
-	
+
 	-- CombatFeedback
 	if not (self:GetParent():GetName():match"oUF_Raid" or unit == "player")then
 	  local cbft = hp:CreateFontString(nil, "OVERLAY")
 	  cbft:SetPoint("LEFT", hp, 5, 0)
-	  cbft:SetFontObject(GameFontNormalSmall)
+	  cbft:SetFont(font, 12, "OUTLINE")
 	  self.CombatFeedbackText = cbft
 	  self.CombatFeedbackText.maxAlpha = 1
 	end
@@ -430,12 +450,14 @@ local func = function(self, unit)
 	  self:SetAttribute('initial-height', height)
 	  self:SetAttribute('initial-width', 150)
 	elseif(self:GetParent():GetName():match"oUF_Raid")then
-	  self:SetAttribute('initial-height', 20)
+	  self:SetAttribute('initial-height', 18)
 	  self:SetAttribute('initial-width', 125)
 	else 
 	  self:SetAttribute('initial-height', height)
 	  self:SetAttribute('initial-width', width)
 	end
+
+	self.disallowVehicleSwap = true
 
 	self.PostCreateAuraIcon = auraIcon
 
@@ -447,16 +469,16 @@ oUF:RegisterStyle("Freeb", func)
 oUF:SetActiveStyle"Freeb"
 
 local player = oUF:Spawn("player")
-player:SetPoint("CENTER", UIParent, -220, -230)
+player:SetPoint("CENTER", UIParent, -220, -200)
 local target = oUF:Spawn("target")
-target:SetPoint("CENTER", UIParent, 220, -230)
+target:SetPoint("CENTER", UIParent, 220, -200)
 
 local tot = oUF:Spawn("targettarget")
 tot:SetPoint("LEFT", oUF.units.player, "RIGHT", 19, 0)
 local pet = oUF:Spawn("pet")
 pet:SetPoint("RIGHT", oUF.units.player, "LEFT", -20, 0)
 local focus = oUF:Spawn("focus")
-focus:SetPoint("BOTTOMLEFT", oUF.units.player, "TOPLEFT", 0, 28)
+focus:SetPoint("BOTTOMLEFT", oUF.units.player, "TOPLEFT", -170, 28)
 
 local party = oUF:Spawn("header", "oUF_Party")
 party:SetPoint("LEFT", oUF.units.player, 0, -70)
@@ -470,9 +492,9 @@ for i = 1, 5 do
 	raidgroup:SetManyAttributes('groupFilter', tostring(i), 'showRaid', true, 'yOffSet', -2)
 	table.insert(raid, raidgroup)
 	if(i==1) then
-		raidgroup:SetPoint('TOPLEFT', UIParent, 5, -200)
+		raidgroup:SetPoint('TOPLEFT', UIParent, 5, -160)
 	else
-		raidgroup:SetPoint('TOP', raid[i-1], 'BOTTOM', 0, -2)
+		raidgroup:SetPoint('TOP', raid[i-1], 'BOTTOM', 0, -8)
 	end
 end
 
