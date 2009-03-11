@@ -391,9 +391,9 @@ local func = function(self, unit)
 		self.Buffs = buffs
 		-- Combo Points
 		self.CPoints = self:CreateFontString(nil, 'OVERLAY')
-		self.CPoints:SetFont(font, fontsize)
+		self.CPoints:SetFont(font, 18)
 		self.CPoints:SetShadowOffset(1, -1)
-		self.CPoints:SetPoint('CENTER', self)
+		self.CPoints:SetPoint('RIGHT', self, 'LEFT', -2, 0)
 		self.CPoints:SetTextColor(.8, .8, 0)
 		self.CPoints:SetJustifyH('RIGHT')
 		self.CPoints.unit = 'player'
@@ -477,7 +477,7 @@ local func = function(self, unit)
 				end
 				self.RuneBar[i]:SetStatusBarTexture(texture)
 				self.RuneBar[i]:SetHeight(5)
-				self.RuneBar[i]:SetWidth(270/6 - 0.85)
+				self.RuneBar[i]:SetWidth(width/6 - 0.85)
 				self.RuneBar[i]:SetBackdrop(backdrop)
 				self.RuneBar[i]:SetBackdropColor(0, 0, 0)
 				self.RuneBar[i]:SetMinMaxValues(0, 1)
