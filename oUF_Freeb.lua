@@ -178,7 +178,6 @@ end
 local func = function(self, unit)
 	self.colors = colors
 	self.menu = menu
-	self.ignoreHealComm = true
 
 	self:EnableMouse(true)
 	self:SetScript("OnEnter", UnitFrame_OnEnter)
