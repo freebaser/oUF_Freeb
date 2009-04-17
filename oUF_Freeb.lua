@@ -1,6 +1,6 @@
 --[[
-	Version: 1.41
-	Supported oUF Version: 1.3.7
+	Version: 1.43
+	Supported oUF Version: 1.3.11
 
 	Based Code provided by oUF_Lily
 
@@ -396,6 +396,7 @@ local func = function(self, unit)
 		self.CPoints:SetTextColor(.8, .8, 0)
 		self.CPoints:SetJustifyH('RIGHT')
 		self.CPoints.unit = 'player'
+		self.CPoints.unti = 'pet'
 	end
 
 	if(unit) then
