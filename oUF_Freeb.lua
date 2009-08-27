@@ -12,13 +12,11 @@
 	-- for oUF and oUF_Lily
 
 	Supported Plugins
-	-- oUF_Swing
 	-- oUF_BarFader
 	-- oUF_DebuffHighlight
 	-- oUF_Experience
 	-- oUF_CombatFeedback
 	-- oUF_Smooth
-	-- oUF_RuneBar
 ]]
 
 local _, class = UnitClass('player')
@@ -450,48 +448,30 @@ local func = function(self, unit)
 	self.DebuffHighlightFilter = true
 
 	if(unit == 'player') then
-		-- Swing
-		if(IsAddOnLoaded('oUF_Swing')) then
-			self.Swing = CreateFrame('StatusBar', nil, self)
-			self.Swing:SetPoint('TOP', self, 'BOTTOM', 0, -10)
-			self.Swing:SetStatusBarTexture(texture)
-			self.Swing:SetStatusBarColor(1, 0.7, 0)
-			self.Swing:SetHeight(6)
-			self.Swing:SetWidth(width)
-			self.Swing:SetBackdrop(backdrop)
-			self.Swing:SetBackdropColor(0, 0, 0)
-
-			self.Swing.Text = self.Swing:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
-			self.Swing.Text:SetPoint('CENTER', self.Swing)
-
-			self.Swing.bg = self.Swing:CreateTexture(nil, 'BORDER')
-			self.Swing.bg:SetAllPoints(self.Swing)
-			self.Swing.bg:SetTexture(0.3, 0.3, 0.3)
-
-			--self.Swing.disableMelee = true
-			--self.Swing.disableRanged = true
-		end
-
-		if(IsAddOnLoaded('oUF_RuneBar') and class == 'DEATHKNIGHT') then
-			self.RuneBar = {}
+		if class == 'DEATHKNIGHT' then
+			local runes = CreateFrame("Frame", nil, self)
+			runes:SetBackdrop(backdrop)
+			runes:SetBackdropColor(0, 0, 0, 1)
+			runes:SetHeight(4)
+			runes:SetWidth(width)
+			runes.spacing = 1
+			runes.anchor = "TOPLEFT"
+			runes.growth = "RIGHT"
+			runes.height = 4
+			runes.width = (width / 6) - 1
+			runes.order = { 1, 2, 3, 4, 5, 6 }
+			runes:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, -1)
+ 
 			for i = 1, 6 do
-				self.RuneBar[i] = CreateFrame('StatusBar', nil, self)
-				if(i == 1) then
-					self.RuneBar[i]:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 0, -1)
-				else
-					self.RuneBar[i]:SetPoint('TOPLEFT', self.RuneBar[i-1], 'TOPRIGHT', 1, 0)
-				end
-				self.RuneBar[i]:SetStatusBarTexture(texture)
-				self.RuneBar[i]:SetHeight(5)
-				self.RuneBar[i]:SetWidth(width/6 - 0.85)
-				self.RuneBar[i]:SetBackdrop(backdrop)
-				self.RuneBar[i]:SetBackdropColor(0, 0, 0)
-				self.RuneBar[i]:SetMinMaxValues(0, 1)
-
-				self.RuneBar[i].bg = self.RuneBar[i]:CreateTexture(nil, 'BORDER')
-				self.RuneBar[i].bg:SetAllPoints(self.RuneBar[i])
-				self.RuneBar[i].bg:SetTexture(0.1, 0.1, 0.1)			
+				local bar = CreateFrame("Statusbar", nil, runes)
+				bar:SetStatusBarTexture(texture)
+				bar.bg = bar:CreateTexture(nil, "BACKGROUND")
+				bar.bg:SetTexture(texture)
+				bar.bg:SetAllPoints(bar)
+				bar.bg:SetAlpha(0.3)
+				runes[i] = bar
 			end
+			self.Runes = runes	
 		end
 
 		-- Experience
