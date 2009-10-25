@@ -23,7 +23,7 @@ local _, class = UnitClass('player')
 local texture = "Interface\\AddOns\\oUF_Freeb\\media\\Cabaret"
 local border = "Interface\\AddOns\\oUF_Freeb\\media\\border"
 local font = "Interface\\AddOns\\oUF_Freeb\\media\\font.ttf"
-local fontsize = 11
+local fontsize = 12
 local height, width = 27, 270
 
 -- Toggle Castbars
@@ -179,14 +179,17 @@ local auraIcon = function(self, button, icons)
 	icons.showDebuffType = true
 	button.cd:SetReverse()
 	button.overlay:SetTexture(border)
-	button.overlay:SetTexCoord(0, 1, 0, 1)
-	button.overlay.Hide = function(self) self:SetVertexColor(0.25, 0.25, 0.25) end
+	button.overlay:SetPoint("TOPLEFT", button, "TOPLEFT", -2, 2)
+	button.overlay:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 2, -2)
+	button.overlay:SetTexCoord(0, 1, 0.02, 1)
+	button.overlay.Hide = function(self) self:SetVertexColor(0.5, 0.5, 0.5) end
 end
 
 -- Style
 local func = function(self, unit)
 	self.colors = colors
 	self.menu = menu
+	self.MoveableFrames = true
 
 	self:EnableMouse(true)
 	self:SetScript("OnEnter", UnitFrame_OnEnter)
@@ -291,11 +294,11 @@ local func = function(self, unit)
 		self.Castbar.bg:SetAllPoints(self.Castbar)
 		self.Castbar.bg:SetTexture(.1, .1, .1)
 		self.Castbar.Text = self.Castbar:CreateFontString(nil, "OVERLAY")
-		self.Castbar.Text:SetFont(font, fontsize)
+		self.Castbar.Text:SetFont(font, fontsize-1)
 		self.Castbar.Text:SetShadowOffset(1, -1)
 		self.Castbar.Text:SetPoint("LEFT", self.Castbar, "LEFT", 2, 0)
-		self.Castbar.Text:SetHeight(fontsize)
-		self.Castbar.Text:SetWidth(110)
+		self.Castbar.Text:SetHeight(fontsize-1)
+		self.Castbar.Text:SetWidth(150)
 		self.Castbar.Text:SetJustifyH"LEFT"
 		self.Castbar.Time = self.Castbar:CreateFontString(nil, 'OVERLAY')
 		self.Castbar.Time:SetFont(font, fontsize)
@@ -374,7 +377,7 @@ local func = function(self, unit)
 	  name:SetFont(font, fontsize)
 	  name:SetShadowOffset(1, -1)
  	  name:SetTextColor(1, 1, 1)
-	  name:SetWidth(125)		-- length of the Name
+	  name:SetWidth(150)		-- length of the Name
 	  name:SetHeight(fontsize)
 	  self.Info = name
 	  if(unit == 'target')then
@@ -390,12 +393,12 @@ local func = function(self, unit)
 		auras:SetHeight(height)
 		auras:SetWidth(width)
 		auras.initialAnchor = "TOPLEFT"
-		auras.num = 40
+		auras.num = 20
 		auras.gap = true
-		auras.spacing = 1
+		auras.spacing = 3
 		auras["growth-x"] = "RIGHT"
 		auras["growth-y"] = "UP"
-		auras:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 2)
+		auras:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 3)
 		auras.size = height
 		self.Auras = auras
 		
@@ -415,16 +418,16 @@ local func = function(self, unit)
 	    debuffs:SetHeight(height)
 	    debuffs:SetWidth(width)
 	  if(unit == 'pet') then
-		  debuffs:SetPoint("LEFT", self, "RIGHT", 2, 0)
+		  debuffs:SetPoint("LEFT", self, "RIGHT", 3, 0)
 		  debuffs["growth-x"] = "RIGHT"
 		  debuffs.initialAnchor = "LEFT"
 	  elseif(unit == 'player' or unit == 'focus' or unit == 'targettarget') then
-		  debuffs:SetPoint("RIGHT", self, "LEFT", -2, 0)
+		  debuffs:SetPoint("RIGHT", self, "LEFT", -3, 0)
 		  debuffs["growth-x"] = "LEFT"
 		  debuffs.initialAnchor = "RIGHT"
 	  end
 	    debuffs.size = height		
-	    debuffs.spacing = 1
+	    debuffs.spacing = 3
 	  if(unit == "targettarget" or unit == "focus" or unit == "player" or unit == "pet") then
 	    debuffs.num = 3
     	  else
@@ -458,13 +461,14 @@ local func = function(self, unit)
 			runes.anchor = "TOPLEFT"
 			runes.growth = "RIGHT"
 			runes.height = 4
-			runes.width = (width / 6) - 1
+			runes.width = width / 6 - 1
 			runes.order = { 1, 2, 3, 4, 5, 6 }
 			runes:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, -1)
  
 			for i = 1, 6 do
 				local bar = CreateFrame("Statusbar", nil, runes)
 				bar:SetStatusBarTexture(texture)
+				bar:SetFrameLevel(2)
 				bar.bg = bar:CreateTexture(nil, "BACKGROUND")
 				bar.bg:SetTexture(texture)
 				bar.bg:SetAllPoints(bar)
