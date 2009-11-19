@@ -47,9 +47,7 @@ oUF.Tags["[freebLvl]"] = function(u)
 end
 
 oUF.Tags['[freebHp]']  = function(u) 
-	local min, max = UnitHealth(u), UnitHealthMax(u)
-	local perc = (min/max)*100
-	
+	local min = UnitHealth(u)
 	return siValue(min).." | "..oUF.Tags['[perhp]'](u).."%"
 end
 oUF.TagEvents['[freebHp]'] = 'UNIT_HEALTH'
@@ -63,28 +61,30 @@ oUF.TagEvents['[freebPp]'] = 'UNIT_ENERGY UNIT_FOCUS UNIT_MANA UNIT_RAGE UNIT_RU
 oUF.Tags["[freebName]"] = function(u, r)
 	local name = string.upper(UnitName(r or u))
 	local _, class = UnitClass(u)
-	local t
+	local reaction = UnitReaction(u, "player")
 	
 	if (UnitIsTapped(u) and not UnitIsTappedByPlayer(u)) then
-		t = hex(oUF.colors.tapped)..name
+		return hex(oUF.colors.tapped)..name
 	elseif (UnitClass("player") == 'HUNTER') and (u == "pet") then
-		t = hex(oUF.colors.happiness[GetPetHappiness()])..name
+		return hex(oUF.colors.happiness[GetPetHappiness()])..name
 	elseif (UnitIsPlayer(u)) then
-		t = hex(oUF.colors.class[class])..name
-	else
-		t = hex(oUF.colors.reaction[UnitReaction(u, "player")])..name
+		return hex(oUF.colors.class[class])..name
+	elseif reaction then
+		return hex(oUF.colors.reaction[reaction])..name
 	end
-	
-	if t then
-		if UnitIsDead(u) then
-			return t.." "..oUF.Tags['[freebLvl]'](u).."|cffCFCFCF Dead|r"
-		elseif UnitIsGhost(u) then
-			return t.." "..oUF.Tags['[freebLvl]'](u).."|cffCFCFCF Ghost|r"
-		elseif not UnitIsConnected(u) then
-			return t.." "..oUF.Tags['[freebLvl]'](u).."|cffCFCFCF D/C|r"
-		else
-			return t.." "..oUF.Tags['[freebLvl]'](u)
-		end
-	end
+	return hex(1, 1, 1)
 end
 oUF.TagEvents['[freebName]'] = 'UNIT_NAME_UPDATE UNIT_REACTION UNIT_HEALTH UNIT_HAPPINESS'
+
+oUF.Tags["[freebInfo]"] = function(u)
+	if UnitIsDead(u) then
+		return oUF.Tags['[freebLvl]'](u).."|cffCFCFCF Dead|r"
+	elseif UnitIsGhost(u) then
+		return oUF.Tags['[freebLvl]'](u).."|cffCFCFCF Ghost|r"
+	elseif not UnitIsConnected(u) then
+		return oUF.Tags['[freebLvl]'](u).."|cffCFCFCF D/C|r"
+	else
+		return oUF.Tags['[freebLvl]'](u)
+	end
+end
+oUF.TagEvents['[freebInfo]'] = 'UNIT_HEALTH'
