@@ -22,6 +22,10 @@ local colors = setmetatable({
 		['FOCUS'] = {.71,.43,.27},
 		['ENERGY'] = {.65,.63,.35},
 		['RUNIC_POWER'] = {0,.8,.9},
+		["AMMOSLOT"] = {0.8,0.6,0},
+		["FUEL"] = {0,0.55,0.5},
+		["POWER_TYPE_STEAM"] = {0.55,0.57,0.61},
+		["POWER_TYPE_PYRITE"] = {0.60,0.09,0.17},
 	}, {__index = oUF.colors.power}),
 }, {__index = oUF.colors})
 

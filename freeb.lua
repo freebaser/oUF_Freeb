@@ -4,7 +4,7 @@ local font, fontsize = mediaPath.."myriad.ttf", 12
 local glowTex = mediaPath.."glowTex"
 local height, width = 22, 220
 
-local overrideBlizzbuffs = true
+local overrideBlizzbuffs = false
 
 if overrideBlizzbuffs then
 	BuffFrame:Hide()
@@ -13,7 +13,7 @@ end
 
 local backdrop = {
 	bgFile = [=[Interface\ChatFrame\ChatFrameBackground]=],
-	insets = {top = -1, left = -1, bottom = -1, right = -1},
+	insets = {top = 0, left = 0, bottom = 0, right = 0},
 }
 
 local frameBD = {
@@ -141,7 +141,7 @@ local auraIcon = function(self, button, icons)
 	local remaining = button:CreateFontString(nil, "OVERLAY")
 	remaining:SetPoint("TOPLEFT", -3, 2)
 	remaining:SetFont("FONTS\\FRIZQT__.ttf", 12, "OUTLINE")
-	remaining:SetTextColor(1, 1, 1)
+	remaining:SetTextColor(.8, .8, .8)
 	button.remaining = remaining
 	
 	if self.unit == "player" then
@@ -174,7 +174,7 @@ local func = function(self, unit)
 	if(unit and (unit == "targettarget")) then
 		hp:SetHeight(height)
 	else
-		hp:SetHeight(height*.90)
+		hp:SetHeight(height*.88)
 	end
 	hp:SetStatusBarTexture(texture)
 	hp:SetStatusBarColor(.1, .1, .1)
@@ -194,7 +194,7 @@ local func = function(self, unit)
 
 	if(unit and not (unit == "targettarget")) then
 		local hpp = hp:CreateFontString(nil, "OVERLAY")
-		hpp:SetPoint("RIGHT", -2, 0)
+		hpp:SetPoint("RIGHT", hp, -2, 0)
 		hpp:SetFont(font, fontsize)
 		hpp:SetShadowOffset(1, -1)
 		hpp:SetTextColor(1, 1, 1)
@@ -206,7 +206,7 @@ local func = function(self, unit)
 
 	if(unit and not (unit == "targettarget")) then
 		local pp = CreateFrame"StatusBar"
-		pp:SetHeight(height*.05)
+		pp:SetHeight(height*.07)
 		pp:SetStatusBarTexture(texture)
 		pp:SetStatusBarColor(1, 1, 1)
 
@@ -244,8 +244,8 @@ local func = function(self, unit)
 				bar:SetBackdropColor(.05, .05, .05, 1)
 				bar:SetFrameLevel(2)
 				bar.bd = CreateFrame("Frame", nil, bar)
-				bar.bd:SetPoint("TOPLEFT", bar, "TOPLEFT", -4.5, 4.5)
-				bar.bd:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", 4.5, -4.5)
+				bar.bd:SetPoint("TOPLEFT", bar, "TOPLEFT", -4, 4)
+				bar.bd:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", 4, -4)
 				bar.bd:SetFrameStrata("LOW")
 				bar.bd:SetBackdrop(frameBD)
 				bar.bd:SetBackdropColor(0, 0, 0, 0)
@@ -276,8 +276,8 @@ local func = function(self, unit)
 				self.Experience.bg:SetVertexColor(.1, .1, .1)
 				
 				self.Experience.bd = CreateFrame("Frame", nil, self.Experience)
-				self.Experience.bd:SetPoint("TOPLEFT", self.Experience, "TOPLEFT", -4.5, 4.5)
-				self.Experience.bd:SetPoint("BOTTOMRIGHT", self.Experience, "BOTTOMRIGHT", 4.5, -4.5)
+				self.Experience.bd:SetPoint("TOPLEFT", self.Experience, "TOPLEFT", -4, 4)
+				self.Experience.bd:SetPoint("BOTTOMRIGHT", self.Experience, "BOTTOMRIGHT", 4, -4)
 				self.Experience.bd:SetFrameStrata("LOW")
 				self.Experience.bd:SetBackdrop(frameBD)
 				self.Experience.bd:SetBackdropColor(0, 0, 0, 0)
@@ -293,7 +293,7 @@ local func = function(self, unit)
 				buffs.num = 30
 				buffs["growth-x"] = "LEFT"
 				buffs["growth-y"] = "DOWN"
-				buffs:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -200, -10)
+				buffs:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -10, -10)
 				buffs.size = 32
 				self.Buffs = buffs
 			end
@@ -322,11 +322,6 @@ local func = function(self, unit)
 		cbbg:SetTexture(texture)
 		cbbg:SetVertexColor(.1,.1,.1)
 		
-		cb.Text = cb:CreateFontString(nil, "OVERLAY")
-		cb.Text:SetFont(font, fontsize)
-		cb.Text:SetShadowOffset(1, -1)
-		cb.Text:SetPoint("LEFT", cb, 2, 0)
-		
 		cb.Time = cb:CreateFontString(nil, 'OVERLAY')
 		cb.Time:SetFont(font, fontsize)
 		cb.Time:SetShadowOffset(1, -1)
@@ -338,6 +333,13 @@ local func = function(self, unit)
                     self.Time:SetFormattedText("%.1f", duration)
                   end
 	  	end
+
+		cb.Text = cb:CreateFontString(nil, "OVERLAY")
+		cb.Text:SetFont(font, fontsize)
+		cb.Text:SetShadowOffset(1, -1)
+		cb.Text:SetPoint("LEFT", cb, 2, 0)
+		cb.Text:SetPoint("RIGHT", cb.Time, "LEFT")
+		cb.Text:SetJustifyH"LEFT"
 		
 		cb.Icon = cb:CreateTexture(nil, 'ARTWORK')
 		cb.Icon:SetHeight(28)
@@ -361,16 +363,16 @@ local func = function(self, unit)
 		end
 		
 		cb.Backdrop = CreateFrame("Frame", nil, cb)
-		cb.Backdrop:SetPoint("TOPLEFT", cb, "TOPLEFT", -4.5, 4.5)
-		cb.Backdrop:SetPoint("BOTTOMRIGHT", cb, "BOTTOMRIGHT", 4.5, -4.5)
+		cb.Backdrop:SetPoint("TOPLEFT", cb, "TOPLEFT", -4, 4)
+		cb.Backdrop:SetPoint("BOTTOMRIGHT", cb, "BOTTOMRIGHT", 4, -4)
 		cb.Backdrop:SetFrameStrata("LOW")
 		cb.Backdrop:SetBackdrop(frameBD)
 		cb.Backdrop:SetBackdropColor(0, 0, 0, 0)
 		cb.Backdrop:SetBackdropBorderColor(0, 0, 0)
 		
 		cb.IBackdrop = CreateFrame("Frame", nil, cb)
-		cb.IBackdrop:SetPoint("TOPLEFT", cb.Icon, "TOPLEFT", -4.5, 4.5)
-		cb.IBackdrop:SetPoint("BOTTOMRIGHT", cb.Icon, "BOTTOMRIGHT", 4.5, -4.5)
+		cb.IBackdrop:SetPoint("TOPLEFT", cb.Icon, "TOPLEFT", -4, 4)
+		cb.IBackdrop:SetPoint("BOTTOMRIGHT", cb.Icon, "BOTTOMRIGHT", 4, -4)
 		cb.IBackdrop:SetFrameStrata("LOW")
 		cb.IBackdrop:SetBackdrop(frameBD)
 		cb.IBackdrop:SetBackdropColor(0, 0, 0, 0)
@@ -384,7 +386,7 @@ local func = function(self, unit)
 	local leader = hp:CreateTexture(nil, "OVERLAY")
 	leader:SetHeight(16)
 	leader:SetWidth(16)
-	leader:SetPoint("BOTTOM", hp, "TOP", 0, -5)
+	leader:SetPoint("BOTTOMRIGHT", hp, "TOPLEFT", 10, -5)
 	self.Leader = leader
 
 	local masterlooter = hp:CreateTexture(nil, 'OVERLAY')
@@ -393,22 +395,14 @@ local func = function(self, unit)
 	masterlooter:SetPoint('LEFT', leader, 'RIGHT')
 	self.MasterLooter = masterlooter
 
-	local ricon = hp:CreateFontString(nil, "OVERLAY")
-	ricon:SetPoint("TOPLEFT", -2, 8)
-	ricon:SetFont(font, 12)
-	ricon:SetTextColor(1, 1, 1)
-	self.RIcon = ricon
-	self:RegisterEvent("RAID_TARGET_UPDATE", updateRIcon)
-	table.insert(self.__elements, updateRIcon)
-
 	if(unit and not (unit == "player")) then
 		local name = hp:CreateFontString(nil, "OVERLAY")
 		if(unit == "targettarget") then
-			name:SetPoint("CENTER")
+			name:SetPoint("LEFT", hp)
+			name:SetPoint("RIGHT", hp)
 		else
-			name:SetPoint("LEFT", 2, 0)
-			name:SetHeight(fontsize)
-			name:SetWidth(154)
+			name:SetPoint("LEFT", hp, 2, 0)
+			name:SetPoint("RIGHT", hpp, -15, 0)
 			name:SetJustifyH"LEFT"
 		end
 		name:SetFont(font, fontsize)
@@ -421,6 +415,14 @@ local func = function(self, unit)
 			self:Tag(name, '[freebName] [freebInfo]')
 		end
 	end
+
+	local ricon = hp:CreateFontString(nil, "OVERLAY")
+	ricon:SetPoint("BOTTOM", hp, "TOP", 0 , -7)
+	ricon:SetFont(font, 14)
+	ricon:SetTextColor(1, 1, 1)
+	self.RIcon = ricon
+	self:RegisterEvent("RAID_TARGET_UPDATE", updateRIcon)
+	table.insert(self.__elements, updateRIcon)
 	
 	if(unit and (unit == "target" or unit == "player" or unit == "focus")) then
 		self.Portrait = CreateFrame("PlayerModel", nil, self)
@@ -432,13 +434,10 @@ local func = function(self, unit)
 			self.Portrait:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -10)
 		end
 		self.PorBackdrop = CreateFrame("Frame", nil, self)
-		self.PorBackdrop:SetPoint("TOPLEFT", self.Portrait, "TOPLEFT", -4.5, 4.5)
-		self.PorBackdrop:SetPoint("BOTTOMRIGHT", self.Portrait, "BOTTOMRIGHT", 4.5, -4.5)
+		self.PorBackdrop:SetPoint("TOPLEFT", self.Portrait, "TOPLEFT", -4, 4)
+		self.PorBackdrop:SetPoint("BOTTOMRIGHT", self.Portrait, "BOTTOMRIGHT", 4, -4)
 		self.PorBackdrop:SetFrameStrata("LOW")
-		self.PorBackdrop:SetBackdrop {
-		  edgeFile = glowTex, edgeSize = 5,
-		  insets = {left = 3, right = 3, top = 3, bottom = 3}
-		}
+		self.PorBackdrop:SetBackdrop(frameBD)
 		self.PorBackdrop:SetBackdropColor(0, 0, 0, 0)
 		self.PorBackdrop:SetBackdropBorderColor(0, 0, 0)
 	end
@@ -467,24 +466,18 @@ local func = function(self, unit)
 
 	if(unit) then
 		local debuffs = CreateFrame("Frame", nil, self)
-		debuffs:SetHeight(height)
+		debuffs:SetHeight(height+2)
 		debuffs:SetWidth(width)
 		debuffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 4)
 		debuffs.spacing = 4
-		debuffs.size = height
+		debuffs.size = height+2
 		debuffs.initialAnchor = "BOTTOMLEFT"
 		if(unit == "target") then
-			debuffs.num = 30
+			debuffs.num = 24
 		else
 			debuffs.num = 5
 		end
 		self.Debuffs = debuffs
-	end
-
-	if(not unit) then
-		self.Range = true
-		self.inRangeAlpha = 1
-		self.outsideRangeAlpha = .5
 	end
 
 	self:SetAttribute('initial-height', height)
