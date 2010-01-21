@@ -4,7 +4,9 @@ local font, fontsize = mediaPath.."myriad.ttf", 12
 local glowTex = mediaPath.."glowTex"
 local height, width = 22, 220
 
-local overrideBlizzbuffs = false
+local overrideBlizzbuffs = false 
+local castbars = true	-- disable castbars
+local auras = true	-- disable all auras
 
 if overrideBlizzbuffs then
 	BuffFrame:Hide()
@@ -24,6 +26,10 @@ local frameBD = {
 local menu = function(self)
 	local unit = self.unit:sub(1, -2)
 	local cunit = self.unit:gsub("(.)", string.upper, 1)
+
+	if(cunit == 'Vehicle') then
+		cunit = 'Pet'
+	end
 
 	if(unit == "party" or unit == "partypet") then
 		ToggleDropDownMenu(1, nil, _G["PartyMemberFrame"..self.id.."DropDown"], "cursor", 0, 0)
@@ -120,7 +126,7 @@ local function updateDebuff(self, icons, unit, icon, index)
 	icon.timeLeft = expirationTime
 	icon.first = true
 	icon:SetScript("OnUpdate", CreateAuraTimer)
-end 
+end
 
 local auraIcon = function(self, button, icons)
 	local count = button.count
@@ -131,8 +137,8 @@ local auraIcon = function(self, button, icons)
 
 	button.icon:SetTexCoord(.1, .9, .1, .9)
 	button.bg = CreateFrame("Frame", nil, button)
-	button.bg:SetPoint("TOPLEFT", button, "TOPLEFT", -4.5, 4.5)
-	button.bg:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 4.5, -4.5)
+	button.bg:SetPoint("TOPLEFT", button, "TOPLEFT", -4, 4)
+	button.bg:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 4, -4)
 	button.bg:SetFrameStrata("LOW")
 	button.bg:SetBackdrop(frameBD)
 	button.bg:SetBackdropColor(0, 0, 0, 0)
@@ -149,166 +155,8 @@ local auraIcon = function(self, button, icons)
 	end
 end
 
-local func = function(self, unit)
-	self.menu = menu
-	self.MoveableFrames = true
-	
-	self:SetBackdrop(backdrop)
-	self:SetBackdropColor(0, 0, 0)
-	
-	self:SetScript("OnEnter", UnitFrame_OnEnter)
-	self:SetScript("OnLeave", UnitFrame_OnLeave)
-
-	self:RegisterForClicks"anyup"
-	self:SetAttribute("*type2", "menu")
-	
-	self.FrameBackdrop = CreateFrame("Frame", nil, self)
-	self.FrameBackdrop:SetPoint("TOPLEFT", self, "TOPLEFT", -4.5, 4.5)
-	self.FrameBackdrop:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", 4.5, -4.5)
-	self.FrameBackdrop:SetFrameStrata("LOW")
-	self.FrameBackdrop:SetBackdrop(frameBD)
-	self.FrameBackdrop:SetBackdropColor(0, 0, 0, 0)
-	self.FrameBackdrop:SetBackdropBorderColor(0, 0, 0)
-
-	local hp = CreateFrame"StatusBar"
-	if(unit and (unit == "targettarget")) then
-		hp:SetHeight(height)
-	else
-		hp:SetHeight(height*.88)
-	end
-	hp:SetStatusBarTexture(texture)
-	hp:SetStatusBarColor(.1, .1, .1)
-
-	hp.frequentUpdates = true
-	hp.Smooth = true
-
-	hp:SetParent(self)
-	hp:SetPoint"TOP"
-	hp:SetPoint"LEFT"
-	hp:SetPoint"RIGHT"
-
-	local hpbg = hp:CreateTexture(nil, "BORDER")
-	hpbg:SetAllPoints(hp)
-	hpbg:SetTexture(texture)
-	hpbg:SetVertexColor(.3,.3,.3)
-
-	if(unit and not (unit == "targettarget")) then
-		local hpp = hp:CreateFontString(nil, "OVERLAY")
-		hpp:SetPoint("RIGHT", hp, -2, 0)
-		hpp:SetFont(font, fontsize)
-		hpp:SetShadowOffset(1, -1)
-		hpp:SetTextColor(1, 1, 1)
-		self:Tag(hpp, '[freebHp]')
-	end
-
-	hp.bg = hpbg
-	self.Health = hp
-
-	if(unit and not (unit == "targettarget")) then
-		local pp = CreateFrame"StatusBar"
-		pp:SetHeight(height*.07)
-		pp:SetStatusBarTexture(texture)
-		pp:SetStatusBarColor(1, 1, 1)
-
-		pp.frequentUpdates = true
-		pp.Smooth = true
-
-		pp:SetParent(self)
-		pp:SetPoint"LEFT"
-		pp:SetPoint"RIGHT"
-		pp:SetPoint"BOTTOM"
-		
-		if(unit and (unit == "player")) then
-			local ppp = hp:CreateFontString(nil, "OVERLAY")
-			ppp:SetPoint("LEFT", 2, 0)
-			ppp:SetFont(font, fontsize)
-			ppp:SetShadowOffset(1, -1)
-			ppp:SetTextColor(1, 1, 1)
-			self:Tag(ppp, '[freebPp]')
-			
-			local runes = CreateFrame("Frame", nil, self)
-			runes:SetHeight(16)
-			runes:SetWidth(150)
-			runes.spacing = 5
-			runes.anchor = "TOPLEFT"
-			runes.growth = "RIGHT"
-			runes.height = 16
-			runes.width = 150 / 6 - 5
-			runes.order = { 1, 2, 3, 4, 5, 6 }
-			runes:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -33)
-
-			for i = 1, 6 do
-				local bar = CreateFrame("Statusbar", nil, runes)
-				bar:SetStatusBarTexture(texture)
-				bar:SetBackdrop(backdrop)
-				bar:SetBackdropColor(.05, .05, .05, 1)
-				bar:SetFrameLevel(2)
-				bar.bd = CreateFrame("Frame", nil, bar)
-				bar.bd:SetPoint("TOPLEFT", bar, "TOPLEFT", -4, 4)
-				bar.bd:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", 4, -4)
-				bar.bd:SetFrameStrata("LOW")
-				bar.bd:SetBackdrop(frameBD)
-				bar.bd:SetBackdropColor(0, 0, 0, 0)
-				bar.bd:SetBackdropBorderColor(0, 0, 0)
-				runes[i] = bar
-			end
-			self.Runes = runes
-			
-			if(IsAddOnLoaded('oUF_Experience')) then
-				self.Experience = CreateFrame('StatusBar', nil, self)
-				self.Experience:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 0, -2)
-				self.Experience:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', 0, -2)
-				self.Experience:SetHeight(4)
-				self.Experience:SetStatusBarTexture(texture)
-				self.Experience:SetStatusBarColor(0, 0.7, 1)
-				self.Experience.Tooltip = true
-
-				self.Experience.Rested = CreateFrame('StatusBar', nil, self)
-				self.Experience.Rested:SetAllPoints(self.Experience)
-				self.Experience.Rested:SetStatusBarTexture(texture)
-				self.Experience.Rested:SetStatusBarColor(0, 0.4, 1, 0.6)
-				self.Experience.Rested:SetBackdrop(backdrop)
-				self.Experience.Rested:SetBackdropColor(0, 0, 0)
-
-				self.Experience.bg = self.Experience.Rested:CreateTexture(nil, 'BORDER')
-				self.Experience.bg:SetAllPoints(self.Experience)
-				self.Experience.bg:SetTexture(texture)
-				self.Experience.bg:SetVertexColor(.1, .1, .1)
-				
-				self.Experience.bd = CreateFrame("Frame", nil, self.Experience)
-				self.Experience.bd:SetPoint("TOPLEFT", self.Experience, "TOPLEFT", -4, 4)
-				self.Experience.bd:SetPoint("BOTTOMRIGHT", self.Experience, "BOTTOMRIGHT", 4, -4)
-				self.Experience.bd:SetFrameStrata("LOW")
-				self.Experience.bd:SetBackdrop(frameBD)
-				self.Experience.bd:SetBackdropColor(0, 0, 0, 0)
-				self.Experience.bd:SetBackdropBorderColor(0, 0, 0)
-			end
-			
-			if overrideBlizzbuffs then
-				local buffs = CreateFrame("Frame", nil, self)
-				buffs:SetHeight(32)
-				buffs:SetWidth(400)
-				buffs.initialAnchor = "TOPRIGHT"
-				buffs.spacing = 5
-				buffs.num = 30
-				buffs["growth-x"] = "LEFT"
-				buffs["growth-y"] = "DOWN"
-				buffs:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -10, -10)
-				buffs.size = 32
-				self.Buffs = buffs
-			end
-		end
-		
-		local ppbg = pp:CreateTexture(nil, "BORDER")
-		ppbg:SetAllPoints(pp)
-		ppbg:SetTexture(texture)
-		ppbg:SetVertexColor(.3,.3,.3)
-
-		pp.bg = ppbg
-		self.Power = pp
-	end
-
-	if(unit and (unit == "target" or unit == "player" or unit == "focus")) then
+local castbar = function(self, unit)
+	if (unit == "target" or unit == "player" or unit == "focus") then
 		local cb = CreateFrame"StatusBar"
 		cb:SetStatusBarTexture(texture, "OVERLAY")
 		cb:SetStatusBarColor(1, .25, .35, .5)
@@ -380,7 +228,248 @@ local func = function(self, unit)
 		
 		cb.bg = cbbg
 		self.Castbar = cb
+	end
+end
+
+local UnitSpecific = {
+	player = function(self)
+		self.Portrait = CreateFrame("PlayerModel", nil, self)
+		self.Portrait:SetWidth(60)
+		self.Portrait:SetHeight(40)
+		self.Portrait:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, -10)
+		self.PorBackdrop = CreateFrame("Frame", nil, self)
+		self.PorBackdrop:SetPoint("TOPLEFT", self.Portrait, "TOPLEFT", -4, 4)
+		self.PorBackdrop:SetPoint("BOTTOMRIGHT", self.Portrait, "BOTTOMRIGHT", 4, -4)
+		self.PorBackdrop:SetFrameStrata("LOW")
+		self.PorBackdrop:SetBackdrop(frameBD)
+		self.PorBackdrop:SetBackdropColor(0, 0, 0, 0)
+		self.PorBackdrop:SetBackdropBorderColor(0, 0, 0)
+
+		local ppp = self.Health:CreateFontString(nil, "OVERLAY")
+		ppp:SetPoint("LEFT", 2, 0)
+		ppp:SetFont(font, fontsize)
+		ppp:SetShadowOffset(1, -1)
+		ppp:SetTextColor(1, 1, 1)
+		self:Tag(ppp, '[freebPp]')
+			
+		local runes = CreateFrame("Frame", nil, self)
+		runes:SetHeight(16)
+		runes:SetWidth(150)
+		runes.spacing = 5
+		runes.anchor = "TOPLEFT"
+		runes.growth = "RIGHT"
+		runes.height = 16
+		runes.width = 150 / 6 - 5
+		runes.order = { 1, 2, 3, 4, 5, 6 }
+		runes:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -33)
+
+		for i = 1, 6 do
+			local bar = CreateFrame("Statusbar", nil, runes)
+			bar:SetStatusBarTexture(texture)
+			bar:SetBackdrop(backdrop)
+			bar:SetBackdropColor(.05, .05, .05, 1)
+			bar:SetFrameLevel(2)
+			bar.bd = CreateFrame("Frame", nil, bar)
+			bar.bd:SetPoint("TOPLEFT", bar, "TOPLEFT", -4, 4)
+			bar.bd:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", 4, -4)
+			bar.bd:SetFrameStrata("LOW")
+			bar.bd:SetBackdrop(frameBD)
+			bar.bd:SetBackdropColor(0, 0, 0, 0)
+			bar.bd:SetBackdropBorderColor(0, 0, 0)
+			runes[i] = bar
+		end
+		self.Runes = runes
 		
+		if(IsAddOnLoaded('oUF_Experience')) then
+			self.Experience = CreateFrame('StatusBar', nil, self)
+			self.Experience:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 0, -2)
+			self.Experience:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', 0, -2)
+			self.Experience:SetHeight(4)
+			self.Experience:SetStatusBarTexture(texture)
+			self.Experience:SetStatusBarColor(0, 0.7, 1)
+			self.Experience.Tooltip = true
+
+			self.Experience.Rested = CreateFrame('StatusBar', nil, self)
+			self.Experience.Rested:SetAllPoints(self.Experience)
+			self.Experience.Rested:SetStatusBarTexture(texture)
+			self.Experience.Rested:SetStatusBarColor(0, 0.4, 1, 0.6)
+			self.Experience.Rested:SetBackdrop(backdrop)
+			self.Experience.Rested:SetBackdropColor(0, 0, 0)
+
+			self.Experience.bg = self.Experience.Rested:CreateTexture(nil, 'BORDER')
+			self.Experience.bg:SetAllPoints(self.Experience)
+			self.Experience.bg:SetTexture(texture)
+			self.Experience.bg:SetVertexColor(.1, .1, .1)
+			
+			self.Experience.bd = CreateFrame("Frame", nil, self.Experience)
+			self.Experience.bd:SetPoint("TOPLEFT", self.Experience, "TOPLEFT", -4, 4)
+			self.Experience.bd:SetPoint("BOTTOMRIGHT", self.Experience, "BOTTOMRIGHT", 4, -4)
+			self.Experience.bd:SetFrameStrata("LOW")
+			self.Experience.bd:SetBackdrop(frameBD)
+			self.Experience.bd:SetBackdropColor(0, 0, 0, 0)
+			self.Experience.bd:SetBackdropBorderColor(0, 0, 0)
+		end
+		
+		if overrideBlizzbuffs then
+			local buffs = CreateFrame("Frame", nil, self)
+			buffs:SetHeight(32)
+			buffs:SetWidth(400)
+			buffs.initialAnchor = "TOPRIGHT"
+			buffs.spacing = 5
+			buffs.num = 30
+			buffs["growth-x"] = "LEFT"
+			buffs["growth-y"] = "DOWN"
+			buffs:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -10, -10)
+			buffs.size = 32
+			self.Buffs = buffs
+		end
+
+		if self.Debuffs then self.Debuffs.num = 5 end
+	end,
+		
+	target = function(self)
+		self.Portrait = CreateFrame("PlayerModel", nil, self)
+		self.Portrait:SetWidth(60)
+		self.Portrait:SetHeight(40)
+		self.Portrait:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -10)
+		self.PorBackdrop = CreateFrame("Frame", nil, self)
+		self.PorBackdrop:SetPoint("TOPLEFT", self.Portrait, "TOPLEFT", -4, 4)
+		self.PorBackdrop:SetPoint("BOTTOMRIGHT", self.Portrait, "BOTTOMRIGHT", 4, -4)
+		self.PorBackdrop:SetFrameStrata("LOW")
+		self.PorBackdrop:SetBackdrop(frameBD)
+		self.PorBackdrop:SetBackdropColor(0, 0, 0, 0)
+		self.PorBackdrop:SetBackdropBorderColor(0, 0, 0)
+
+		local buffs = CreateFrame("Frame", nil, self)
+		buffs:SetHeight(height)
+		buffs:SetWidth(180)
+		buffs.initialAnchor = "TOPLEFT"
+		buffs.spacing = 4
+		buffs.num = 20
+		buffs["growth-x"] = "RIGHT"
+		buffs["growth-y"] = "DOWN"
+		buffs:SetPoint("LEFT", self, "RIGHT", 4, 0)
+		buffs.size = height
+
+		if auras then
+			self.Buffs = buffs 
+		end
+
+		if self.Debuffs then self.Debuffs.num = 24 end
+		
+		self.CPoints = self.Portrait:CreateFontString(nil, 'OVERLAY')
+		self.CPoints:SetFont(font, 32, "THINOUTLINE")
+		self.CPoints:SetShadowOffset(1, -1)
+		self.CPoints:SetPoint('CENTER', self.Portrait)
+		self.CPoints:SetTextColor(1, 0, 0)
+		self.CPoints.unit = PlayerFrame.unit
+		self:RegisterEvent('UNIT_COMBO_POINTS', updateCombo)
+	end,
+
+	focus = function(self)
+		self.Portrait = CreateFrame("PlayerModel", nil, self)
+		self.Portrait:SetWidth(60)
+		self.Portrait:SetHeight(40)
+		self.Portrait:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -10)
+		self.PorBackdrop = CreateFrame("Frame", nil, self)
+		self.PorBackdrop:SetPoint("TOPLEFT", self.Portrait, "TOPLEFT", -4, 4)
+		self.PorBackdrop:SetPoint("BOTTOMRIGHT", self.Portrait, "BOTTOMRIGHT", 4, -4)
+		self.PorBackdrop:SetFrameStrata("LOW")
+		self.PorBackdrop:SetBackdrop(frameBD)
+		self.PorBackdrop:SetBackdropColor(0, 0, 0, 0)
+		self.PorBackdrop:SetBackdropBorderColor(0, 0, 0)
+	
+		if self.Debuffs then self.Debuffs.num = 8 end
+	end,
+
+	pet = function(self)
+		if self.Debuffs then self.Debuffs.num = 8 end
+	end,
+
+	targettarget = function(self)
+		if self.Debuffs then self.Debuffs.num = 5 end
+	end,
+
+	boss = function(self)
+		if self.Debuffs then self.Debuffs.num = 0 end
+	end,
+}
+
+local func = function(self, unit)
+	self.menu = menu
+	
+	self:SetBackdrop(backdrop)
+	self:SetBackdropColor(0, 0, 0)
+	
+	self:SetScript("OnEnter", UnitFrame_OnEnter)
+	self:SetScript("OnLeave", UnitFrame_OnLeave)
+
+	self:RegisterForClicks"anyup"
+	self:SetAttribute("*type2", "menu")
+	
+	self.FrameBackdrop = CreateFrame("Frame", nil, self)
+	self.FrameBackdrop:SetPoint("TOPLEFT", self, "TOPLEFT", -4, 4)
+	self.FrameBackdrop:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", 4, -4)
+	self.FrameBackdrop:SetFrameStrata("LOW")
+	self.FrameBackdrop:SetBackdrop(frameBD)
+	self.FrameBackdrop:SetBackdropColor(0, 0, 0, 0)
+	self.FrameBackdrop:SetBackdropBorderColor(0, 0, 0)
+
+	local hp = CreateFrame"StatusBar"
+	if(unit and (unit == "targettarget")) then
+		hp:SetHeight(height)
+	else
+		hp:SetHeight(height*.88)
+	end
+	hp:SetStatusBarTexture(texture)
+	hp:SetStatusBarColor(.1, .1, .1)
+
+	hp.frequentUpdates = true
+	hp.Smooth = true
+
+	hp:SetParent(self)
+	hp:SetPoint"TOP"
+	hp:SetPoint"LEFT"
+	hp:SetPoint"RIGHT"
+
+	local hpbg = hp:CreateTexture(nil, "BORDER")
+	hpbg:SetAllPoints(hp)
+	hpbg:SetTexture(texture)
+	hpbg:SetVertexColor(.3,.3,.3)
+
+	if not (unit == "targettarget") then
+		local hpp = hp:CreateFontString(nil, "OVERLAY")
+		hpp:SetPoint("RIGHT", hp, -2, 0)
+		hpp:SetFont(font, fontsize)
+		hpp:SetShadowOffset(1, -1)
+		hpp:SetTextColor(1, 1, 1)
+		self:Tag(hpp, '[freebHp]')
+	end
+
+	hp.bg = hpbg
+	self.Health = hp
+
+	if not (unit == "targettarget") then
+		local pp = CreateFrame"StatusBar"
+		pp:SetHeight(height*.07)
+		pp:SetStatusBarTexture(texture)
+		pp:SetStatusBarColor(1, 1, 1)
+
+		pp.frequentUpdates = true
+		pp.Smooth = true
+
+		pp:SetParent(self)
+		pp:SetPoint"LEFT"
+		pp:SetPoint"RIGHT"
+		pp:SetPoint"BOTTOM"	
+		
+		local ppbg = pp:CreateTexture(nil, "BORDER")
+		ppbg:SetAllPoints(pp)
+		ppbg:SetTexture(texture)
+		ppbg:SetVertexColor(.3,.3,.3)
+
+		pp.bg = ppbg
+		self.Power = pp
 	end
 
 	local leader = hp:CreateTexture(nil, "OVERLAY")
@@ -395,7 +484,7 @@ local func = function(self, unit)
 	masterlooter:SetPoint('LEFT', leader, 'RIGHT')
 	self.MasterLooter = masterlooter
 
-	if(unit and not (unit == "player")) then
+	if not (unit == "player") then
 		local name = hp:CreateFontString(nil, "OVERLAY")
 		if(unit == "targettarget") then
 			name:SetPoint("LEFT", hp)
@@ -423,61 +512,21 @@ local func = function(self, unit)
 	self.RIcon = ricon
 	self:RegisterEvent("RAID_TARGET_UPDATE", updateRIcon)
 	table.insert(self.__elements, updateRIcon)
-	
-	if(unit and (unit == "target" or unit == "player" or unit == "focus")) then
-		self.Portrait = CreateFrame("PlayerModel", nil, self)
-		self.Portrait:SetWidth(60)
-		self.Portrait:SetHeight(40)
-		if(unit and (unit == "player")) then
-			self.Portrait:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, -10)
-		else
-			self.Portrait:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -10)
-		end
-		self.PorBackdrop = CreateFrame("Frame", nil, self)
-		self.PorBackdrop:SetPoint("TOPLEFT", self.Portrait, "TOPLEFT", -4, 4)
-		self.PorBackdrop:SetPoint("BOTTOMRIGHT", self.Portrait, "BOTTOMRIGHT", 4, -4)
-		self.PorBackdrop:SetFrameStrata("LOW")
-		self.PorBackdrop:SetBackdrop(frameBD)
-		self.PorBackdrop:SetBackdropColor(0, 0, 0, 0)
-		self.PorBackdrop:SetBackdropBorderColor(0, 0, 0)
-	end
 
-	if(unit == "target") then
-		local buffs = CreateFrame("Frame", nil, self)
-		buffs:SetHeight(height)
-		buffs:SetWidth(180)
-		buffs.initialAnchor = "TOPLEFT"
-		buffs.spacing = 4
-		buffs.num = 20
-		buffs["growth-x"] = "RIGHT"
-		buffs["growth-y"] = "DOWN"
-		buffs:SetPoint("LEFT", self, "RIGHT", 4, 0)
-		buffs.size = height
-		self.Buffs = buffs
-		
-		self.CPoints = self.Portrait:CreateFontString(nil, 'OVERLAY')
-		self.CPoints:SetFont(font, 32, "THINOUTLINE")
-		self.CPoints:SetShadowOffset(1, -1)
-		self.CPoints:SetPoint('CENTER', self.Portrait)
-		self.CPoints:SetTextColor(1, 0, 0)
-		self.CPoints.unit = PlayerFrame.unit
-		self:RegisterEvent('UNIT_COMBO_POINTS', updateCombo)
-	end
+	local debuffs = CreateFrame("Frame", nil, self)
+	debuffs:SetHeight(height+2)
+	debuffs:SetWidth(width)
+	debuffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 4)
+	debuffs.spacing = 4
+	debuffs.size = height+2
+	debuffs.initialAnchor = "BOTTOMLEFT"
 
-	if(unit) then
-		local debuffs = CreateFrame("Frame", nil, self)
-		debuffs:SetHeight(height+2)
-		debuffs:SetWidth(width)
-		debuffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 4)
-		debuffs.spacing = 4
-		debuffs.size = height+2
-		debuffs.initialAnchor = "BOTTOMLEFT"
-		if(unit == "target") then
-			debuffs.num = 24
-		else
-			debuffs.num = 5
-		end
+	if auras then
 		self.Debuffs = debuffs
+	end
+
+	if castbars then
+		castbar(self, unit)
 	end
 
 	self:SetAttribute('initial-height', height)
@@ -489,6 +538,10 @@ local func = function(self, unit)
 
 	self.PostCreateAuraIcon = auraIcon
 	self.PostUpdateAuraIcon = updateDebuff
+
+	if(UnitSpecific[unit]) then
+		return UnitSpecific[unit](self)
+	end
 end
 
 oUF:RegisterStyle("Freeb", func)
@@ -502,6 +555,20 @@ target:SetPoint("CENTER", 200, -150)
 local tot = oUF:Spawn"targettarget"
 tot:SetPoint("CENTER", 0, -150)
 local focus = oUF:Spawn"focus"
-focus:SetPoint("CENTER", 400, 0)
-local pet = oUF:Spawn'pet'
+focus:SetPoint("CENTER", 500, 0)
+local pet = oUF:Spawn"pet"
 pet:SetPoint("RIGHT", oUF.units.player, "LEFT", -10, 0)
+
+local Boss = {}
+for i = 1, MAX_BOSS_FRAMES do
+	local bossUnit = oUF:Spawn("boss"..i)
+	table.insert(Boss, bossUnit)
+
+	if i==1 then
+		bossUnit:SetPoint("CENTER", 500, 200)
+	else
+		bossUnit:SetPoint("TOPLEFT", Boss[i-1], "BOTTOMLEFT", 0, -10)
+	end
+end
+for i, v in ipairs(Boss) do v:Show() end
+
