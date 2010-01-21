@@ -4,7 +4,7 @@
 ## Version: 2.2
 ## Notes: oUF layout.
 ## Dependencies: oUF
-## OptionalDeps: oUF_Experience, oUF_MoveableFrames
+## OptionalDeps: oUF_Experience
 
 ftags.lua
 freeb.lua
