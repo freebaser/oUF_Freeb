@@ -7,6 +7,8 @@ local height, width = 22, 220
 local overrideBlizzbuffs = false 
 local castbars = true	-- disable castbars
 local auras = true	-- disable all auras
+local healtext = false
+local healbar = true
 
 if overrideBlizzbuffs then
 	BuffFrame:Hide()
@@ -472,6 +474,27 @@ local func = function(self, unit)
 		self.Power = pp
 	end
 
+	if healtext then
+		local heal = hp:CreateFontString(nil, "OVERLAY")
+		heal:SetPoint("CENTER")
+		heal:SetJustifyH("CENTER")
+		heal:SetFont(font, fontsize)
+		heal:SetShadowOffset(1.25, -1.25)
+		heal:SetTextColor(0,1,0,1)
+
+		self.HealCommText = heal
+	end
+
+	if healbar then
+		self.HealCommBar = CreateFrame('StatusBar', nil, hp)
+		self.HealCommBar:SetHeight(0)
+		self.HealCommBar:SetWidth(0)	
+		self.HealCommBar:SetStatusBarTexture(texture)
+		self.HealCommBar:SetStatusBarColor(0, 1, 0, 0.4)
+		self.HealCommBar:SetPoint('LEFT', hp, 'LEFT')
+		self.allowHealCommOverflow = true
+	end
+
 	local leader = hp:CreateTexture(nil, "OVERLAY")
 	leader:SetHeight(16)
 	leader:SetWidth(16)
@@ -535,6 +558,8 @@ local func = function(self, unit)
 	else
 		self:SetAttribute('initial-width', width)
 	end
+
+	self.disallowVehicleSwap = true
 
 	self.PostCreateAuraIcon = auraIcon
 	self.PostUpdateAuraIcon = updateDebuff
