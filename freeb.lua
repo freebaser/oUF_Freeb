@@ -8,7 +8,7 @@ local overrideBlizzbuffs = false
 local castbars = true	-- disable castbars
 local auras = true	-- disable all auras
 local healtext = false
-local healbar = true
+local healbar = false
 
 if overrideBlizzbuffs then
 	BuffFrame:Hide()
@@ -391,10 +391,6 @@ local UnitSpecific = {
 	targettarget = function(self)
 		if self.Debuffs then self.Debuffs.num = 5 end
 	end,
-
-	boss = function(self)
-		if self.Debuffs then self.Debuffs.num = 0 end
-	end,
 }
 
 local func = function(self, unit)
@@ -544,7 +540,7 @@ local func = function(self, unit)
 	debuffs.size = height+2
 	debuffs.initialAnchor = "BOTTOMLEFT"
 
-	if auras then
+	if auras and not self:GetParent():GetName():match'boss' then
 		self.Debuffs = debuffs
 	end
 
@@ -584,16 +580,16 @@ focus:SetPoint("CENTER", 500, 0)
 local pet = oUF:Spawn"pet"
 pet:SetPoint("RIGHT", oUF.units.player, "LEFT", -10, 0)
 
-local Boss = {}
+local boss = {}
 for i = 1, MAX_BOSS_FRAMES do
-	local bossUnit = oUF:Spawn("boss"..i)
-	table.insert(Boss, bossUnit)
+	local unit = oUF:Spawn("boss"..i)
+	table.insert(unit, boss)
 
 	if i==1 then
-		bossUnit:SetPoint("CENTER", 500, 200)
+		unit:SetPoint("CENTER", 500, 200)
 	else
-		bossUnit:SetPoint("TOPLEFT", Boss[i-1], "BOTTOMLEFT", 0, -10)
+		unit:SetPoint("TOPLEFT", boss[i-1], "BOTTOMLEFT", 0, -10)
 	end
 end
-for i, v in ipairs(Boss) do v:Show() end
+for i, v in ipairs(boss) do v:Show() end
 

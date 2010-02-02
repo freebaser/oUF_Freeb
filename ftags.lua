@@ -26,6 +26,9 @@ local colors = setmetatable({
 		["FUEL"] = {0,0.55,0.5},
 		["POWER_TYPE_STEAM"] = {0.55,0.57,0.61},
 		["POWER_TYPE_PYRITE"] = {0.60,0.09,0.17},
+		["POWER_TYPE_HEAT"] = {0.55,0.57,0.61},
+      		["POWER_TYPE_OOZE"] = {0.75686281919479,1,0},
+      		["POWER_TYPE_BLOOD_POWER"] = {0.73725494556129,0,1},
 	}, {__index = oUF.colors.power}),
 }, {__index = oUF.colors})
 
