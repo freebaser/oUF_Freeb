@@ -1,7 +1,7 @@
 ## Interface: 30300
 ## Title: oUF_Freeb
 ## Author: Freebaser
-## Version: 2.2
+## Version: 2.3
 ## Notes: oUF layout.
 ## Dependencies: oUF
 ## OptionalDeps: oUF_Experience
