@@ -9,6 +9,7 @@ local castbars = true	-- disable castbars
 local auras = true	-- disable all auras
 local healtext = false
 local healbar = false
+local bossframes = true
 
 if overrideBlizzbuffs then
 	BuffFrame:Hide()
@@ -323,10 +324,22 @@ local UnitSpecific = {
 			buffs["growth-y"] = "DOWN"
 			buffs:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -10, -10)
 			buffs.size = 32
+
 			self.Buffs = buffs
 		end
 
-		if self.Debuffs then self.Debuffs.num = 5 end
+		if auras then 
+			local debuffs = CreateFrame("Frame", nil, self)
+			debuffs:SetHeight(height+2)
+			debuffs:SetWidth(width)
+			debuffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 4)
+			debuffs.spacing = 4
+			debuffs.size = height+2
+			debuffs.initialAnchor = "BOTTOMLEFT"
+
+			self.Debuffs = debuffs
+			self.Debuffs.num = 5 
+		end
 	end,
 		
 	target = function(self)
@@ -342,22 +355,31 @@ local UnitSpecific = {
 		self.PorBackdrop:SetBackdropColor(0, 0, 0, 0)
 		self.PorBackdrop:SetBackdropBorderColor(0, 0, 0)
 
-		local buffs = CreateFrame("Frame", nil, self)
-		buffs:SetHeight(height)
-		buffs:SetWidth(180)
-		buffs.initialAnchor = "TOPLEFT"
-		buffs.spacing = 4
-		buffs.num = 20
-		buffs["growth-x"] = "RIGHT"
-		buffs["growth-y"] = "DOWN"
-		buffs:SetPoint("LEFT", self, "RIGHT", 4, 0)
-		buffs.size = height
-
 		if auras then
-			self.Buffs = buffs 
-		end
+			local buffs = CreateFrame("Frame", nil, self)
+			buffs:SetHeight(height)
+			buffs:SetWidth(180)
+			buffs.initialAnchor = "TOPLEFT"
+			buffs.spacing = 4
+			buffs.num = 20
+			buffs["growth-x"] = "RIGHT"
+			buffs["growth-y"] = "DOWN"
+			buffs:SetPoint("LEFT", self, "RIGHT", 4, 0)
+			buffs.size = height
 
-		if self.Debuffs then self.Debuffs.num = 24 end
+			self.Buffs = buffs
+
+			local debuffs = CreateFrame("Frame", nil, self)
+			debuffs:SetHeight(height+2)
+			debuffs:SetWidth(width)
+			debuffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 4)
+			debuffs.spacing = 4
+			debuffs.size = height+2
+			debuffs.initialAnchor = "BOTTOMLEFT"
+		
+			self.Debuffs = debuffs
+			self.Debuffs.num = 24
+		end
 		
 		self.CPoints = self.Portrait:CreateFontString(nil, 'OVERLAY')
 		self.CPoints:SetFont(font, 32, "THINOUTLINE")
@@ -381,15 +403,48 @@ local UnitSpecific = {
 		self.PorBackdrop:SetBackdropColor(0, 0, 0, 0)
 		self.PorBackdrop:SetBackdropBorderColor(0, 0, 0)
 	
-		if self.Debuffs then self.Debuffs.num = 8 end
+		if auras then 
+			local debuffs = CreateFrame("Frame", nil, self)
+			debuffs:SetHeight(height+2)
+			debuffs:SetWidth(width)
+			debuffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 4)
+			debuffs.spacing = 4
+			debuffs.size = height+2
+			debuffs.initialAnchor = "BOTTOMLEFT"
+
+			self.Debuffs = debuffs
+			self.Debuffs.num = 8
+		end
 	end,
 
 	pet = function(self)
-		if self.Debuffs then self.Debuffs.num = 8 end
+		if auras then 
+			local debuffs = CreateFrame("Frame", nil, self)
+			debuffs:SetHeight(height+2)
+			debuffs:SetWidth(width)
+			debuffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 4)
+			debuffs.spacing = 4
+			debuffs.size = height+2
+			debuffs.initialAnchor = "BOTTOMLEFT"
+
+			self.Debuffs = debuffs
+			self.Debuffs.num = 8
+		end
 	end,
 
 	targettarget = function(self)
-		if self.Debuffs then self.Debuffs.num = 5 end
+		if auras then 
+			local debuffs = CreateFrame("Frame", nil, self)
+			debuffs:SetHeight(height+2)
+			debuffs:SetWidth(width)
+			debuffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 4)
+			debuffs.spacing = 4
+			debuffs.size = height+2
+			debuffs.initialAnchor = "BOTTOMLEFT"
+
+			self.Debuffs = debuffs
+			self.Debuffs.num = 5 
+		end
 	end,
 }
 
@@ -532,18 +587,6 @@ local func = function(self, unit)
 	self:RegisterEvent("RAID_TARGET_UPDATE", updateRIcon)
 	table.insert(self.__elements, updateRIcon)
 
-	local debuffs = CreateFrame("Frame", nil, self)
-	debuffs:SetHeight(height+2)
-	debuffs:SetWidth(width)
-	debuffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 4)
-	debuffs.spacing = 4
-	debuffs.size = height+2
-	debuffs.initialAnchor = "BOTTOMLEFT"
-
-	if auras and not self:GetParent():GetName():match'boss' then
-		self.Debuffs = debuffs
-	end
-
 	if castbars then
 		castbar(self, unit)
 	end
@@ -580,16 +623,16 @@ focus:SetPoint("CENTER", 500, 0)
 local pet = oUF:Spawn"pet"
 pet:SetPoint("RIGHT", oUF.units.player, "LEFT", -10, 0)
 
-local boss = {}
-for i = 1, MAX_BOSS_FRAMES do
-	local unit = oUF:Spawn("boss"..i)
-	table.insert(unit, boss)
+if bossframes then
+	local boss = {}
+	for i = 1, MAX_BOSS_FRAMES do
+		local unit = oUF:Spawn("boss"..i)
 
-	if i==1 then
-		unit:SetPoint("CENTER", 500, 200)
-	else
-		unit:SetPoint("TOPLEFT", boss[i-1], "BOTTOMLEFT", 0, -10)
+		if i==1 then
+			unit:SetPoint("CENTER", 500, 200)
+		else
+			unit:SetPoint("TOPLEFT", boss[i-1], "BOTTOMLEFT", 0, -10)
+		end
+		boss[i] = unit
 	end
 end
-for i, v in ipairs(boss) do v:Show() end
-

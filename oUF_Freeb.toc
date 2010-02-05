@@ -1,10 +1,11 @@
 ## Interface: 30300
 ## Title: oUF_Freeb
 ## Author: Freebaser
-## Version: 2.3
+## Version: 2.4
 ## Notes: oUF layout.
 ## Dependencies: oUF
 ## OptionalDeps: oUF_Experience
 
 ftags.lua
 freeb.lua
+freebraid.lua
