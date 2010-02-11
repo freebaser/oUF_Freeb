@@ -1,6 +1,7 @@
 local mediaPath = "Interface\\AddOns\\oUF_Freeb\\media\\"
 local texture = mediaPath.."Cabaret"
 local glowTex = mediaPath.."glowTex"
+local font, fontsize = mediaPath.."myriad.ttf", 12
 local height, width = 28, 28
 
 local backdrop = {
@@ -73,8 +74,16 @@ local func = function(self, unit)
 
 	self.OverrideUpdateHealth = updateHealth
 
+	local info = hp:CreateFontString(nil, "OVERLAY")
+	info:SetPoint("LEFT", hp)
+	info:SetPoint("RIGHT", hp)
+	info:SetFont(font, fontsize)
+	info:SetShadowOffset(1, -1)
+	info:SetTextColor(1, 1, 1)
+	self:Tag(info, '[freebraidInfo]')
+
 	local ricon = hp:CreateFontString(nil, "OVERLAY")
-	ricon:SetPoint("BOTTOM", hp, "TOP", 0 , -8)
+	ricon:SetPoint("BOTTOM", hp, "TOP", 0 , -10)
 	ricon:SetFont("Fonts\\FRIZQT__.ttf", 13)
 	ricon:SetTextColor(1, 1, 1)
 	self.RIcon = ricon

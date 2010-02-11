@@ -65,23 +65,30 @@ oUF.Tags['[freebPp]'] = function(u)
 end
 oUF.TagEvents['[freebPp]'] = 'UNIT_ENERGY UNIT_FOCUS UNIT_MANA UNIT_RAGE UNIT_RUNIC_POWER'
 
-oUF.Tags["[freebName]"] = function(u, r)
-	local name = string.upper(UnitName(r or u))
+oUF.Tags["[freebColor]"] = function(u, r)
 	local _, class = UnitClass(u)
 	local reaction = UnitReaction(u, "player")
 	
 	if (UnitIsTapped(u) and not UnitIsTappedByPlayer(u)) then
-		return hex(oUF.colors.tapped)..name
+		return hex(oUF.colors.tapped)
 	elseif (UnitClass("player") == 'HUNTER') and (u == "pet") then
-		return hex(oUF.colors.happiness[GetPetHappiness()])..name
+		return hex(oUF.colors.happiness[GetPetHappiness()])
 	elseif (UnitIsPlayer(u)) then
-		return hex(oUF.colors.class[class])..name
+		return hex(oUF.colors.class[class])
 	elseif reaction then
-		return hex(oUF.colors.reaction[reaction])..name
+		return hex(oUF.colors.reaction[reaction])
+	else
+		return hex(1, 1, 1)
 	end
-	return hex(1, 1, 1)
 end
-oUF.TagEvents['[freebName]'] = 'UNIT_NAME_UPDATE UNIT_REACTION UNIT_HEALTH UNIT_HAPPINESS'
+oUF.TagEvents['[freebColor]'] = 'UNIT_REACTION UNIT_HEALTH UNIT_HAPPINESS'
+
+oUF.Tags["[freebName]"] = function(u, r)
+	local name = string.upper(UnitName(r or u))
+
+	return name
+end
+oUF.TagEvents['[freebName]'] = 'UNIT_NAME_UPDATE'
 
 oUF.Tags["[freebInfo]"] = function(u)
 	if UnitIsDead(u) then
@@ -95,3 +102,18 @@ oUF.Tags["[freebInfo]"] = function(u)
 	end
 end
 oUF.TagEvents['[freebInfo]'] = 'UNIT_HEALTH'
+
+oUF.Tags["[freebraidInfo]"] = function(u)
+	local _, class = UnitClass(u)
+
+	if UnitIsDead(u) then
+		return hex(oUF.colors.class[class]).."RIP|r"
+	elseif UnitIsGhost(u) then
+		return hex(oUF.colors.class[class]).."Gho|r"
+	elseif not UnitIsConnected(u) then
+		return hex(oUF.colors.class[class]).."D/C|r"
+	else
+		return " "
+	end
+end
+oUF.TagEvents['[freebraidInfo]'] = 'UNIT_HEALTH'

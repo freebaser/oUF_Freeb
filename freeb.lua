@@ -2,6 +2,7 @@ local mediaPath = "Interface\\AddOns\\oUF_Freeb\\media\\"
 local texture = mediaPath.."Cabaret"
 local font, fontsize = mediaPath.."myriad.ttf", 12
 local glowTex = mediaPath.."glowTex"
+local buttonTex = mediaPath.."buttontex"
 local height, width = 22, 220
 
 local overrideBlizzbuffs = false 
@@ -10,6 +11,8 @@ local auras = true	-- disable all auras
 local healtext = false
 local healbar = false
 local bossframes = true
+local auraborders = false
+local classColorbars = false
 
 if overrideBlizzbuffs then
 	BuffFrame:Hide()
@@ -97,11 +100,11 @@ local CreateAuraTimer = function(self,elapsed)
 end
 
 local debuffFilter = {
-	--[GetSpellInfo(770)] = true, -- Faerie Fire
-	--[GetSpellInfo(16857)] = true, -- Faerie Fire (Feral)
-	--[GetSpellInfo(48564)] = true, -- Mangle (Bear)
-	--[GetSpellInfo(48566)] = true, -- Mangle (Cat)
-	--[GetSpellInfo(46857)] = true, -- Trauma
+	[GetSpellInfo(770)] = false, -- Faerie Fire
+	[GetSpellInfo(16857)] = false, -- Faerie Fire (Feral)
+	[GetSpellInfo(48564)] = false, -- Mangle (Bear)
+	[GetSpellInfo(48566)] = false, -- Mangle (Cat)
+	[GetSpellInfo(46857)] = false, -- Trauma
 	[GetSpellInfo(7386)] = true, -- Sunder
 }
 
@@ -136,7 +139,7 @@ local auraIcon = function(self, button, icons)
 	count:ClearAllPoints()
 	count:SetPoint("BOTTOMRIGHT", 3, -3)
 	
-	icons.disableCooldown = true
+	icons.disableCooldown = true	
 
 	button.icon:SetTexCoord(.1, .9, .1, .9)
 	button.bg = CreateFrame("Frame", nil, button)
@@ -146,16 +149,46 @@ local auraIcon = function(self, button, icons)
 	button.bg:SetBackdrop(frameBD)
 	button.bg:SetBackdropColor(0, 0, 0, 0)
 	button.bg:SetBackdropBorderColor(0, 0, 0)
+
+	------------------------
+	if auraborders then
+		icons.showDebuffType = true
+		button.overlay:SetTexture(buttonTex)
+		button.overlay:SetPoint("TOPLEFT", button, "TOPLEFT", -2, 2)
+		button.overlay:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 2, -2)
+		button.overlay:SetTexCoord(0, 1, 0.02, 1)
+		button.overlay.Hide = function(self) self:SetVertexColor(0.33, 0.59, 0.33) end
+	end
+	----------------------------
 	
 	local remaining = button:CreateFontString(nil, "OVERLAY")
 	remaining:SetPoint("TOPLEFT", -3, 2)
-	remaining:SetFont("FONTS\\FRIZQT__.ttf", 12, "OUTLINE")
+	remaining:SetFont(font, 12, "OUTLINE")
 	remaining:SetTextColor(.8, .8, .8)
 	button.remaining = remaining
 	
 	if self.unit == "player" then
 		button:SetScript("OnMouseUp", CancelAura)
 	end
+end
+
+local updateHealth = function(self, event, unit, bar)
+	local r, g, b, t
+	local reaction = UnitReaction(unit, "player")
+	if(UnitIsPlayer(unit)) then
+		local _, class = UnitClass(unit)
+		t = oUF.colors.class[class]
+	elseif reaction then
+		t = oUF.colors.reaction[reaction]
+	else
+		r, g, b = .1, .8, .3
+	end
+
+	if(t) then
+		r, g, b = t[1], t[2], t[3]
+	end
+
+	bar:SetStatusBarColor(r, g, b)
 end
 
 local castbar = function(self, unit)
@@ -488,7 +521,13 @@ local func = function(self, unit)
 	local hpbg = hp:CreateTexture(nil, "BORDER")
 	hpbg:SetAllPoints(hp)
 	hpbg:SetTexture(texture)
-	hpbg:SetVertexColor(.3,.3,.3)
+
+	if classColorbars then
+		self.OverrideUpdateHealth = updateHealth
+		hpbg:SetVertexColor(.15,.15,.15)
+	else
+		hpbg:SetVertexColor(.3,.3,.3)
+	end
 
 	if not (unit == "targettarget") then
 		local hpp = hp:CreateFontString(nil, "OVERLAY")
@@ -572,10 +611,18 @@ local func = function(self, unit)
 		name:SetShadowOffset(1, -1)
 		name:SetTextColor(1, 1, 1)
 		
-		if(unit == "targettarget") then
-			self:Tag(name, '[freebName]')
+		if classColorbars then
+			if(unit == "targettarget") then
+				self:Tag(name, '[freebName]')
+			else
+				self:Tag(name, '[freebName] [freebInfo]')
+			end
 		else
-			self:Tag(name, '[freebName] [freebInfo]')
+			if(unit == "targettarget") then
+				self:Tag(name, '[freebColor][freebName]')
+			else
+				self:Tag(name, '[freebColor][freebName] [freebInfo]')
+			end
 		end
 	end
 
