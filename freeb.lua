@@ -352,7 +352,7 @@ local UnitSpecific = {
 			buffs:SetWidth(400)
 			buffs.initialAnchor = "TOPRIGHT"
 			buffs.spacing = 5
-			buffs.num = 30
+			buffs.num = 40
 			buffs["growth-x"] = "LEFT"
 			buffs["growth-y"] = "DOWN"
 			buffs:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -10, -10)
@@ -411,7 +411,7 @@ local UnitSpecific = {
 			debuffs.initialAnchor = "BOTTOMLEFT"
 		
 			self.Debuffs = debuffs
-			self.Debuffs.num = 24
+			--self.Debuffs.num = 24
 		end
 		
 		self.CPoints = self.Portrait:CreateFontString(nil, 'OVERLAY')
@@ -588,7 +588,7 @@ local func = function(self, unit)
 	local leader = hp:CreateTexture(nil, "OVERLAY")
 	leader:SetHeight(16)
 	leader:SetWidth(16)
-	leader:SetPoint("BOTTOMRIGHT", hp, "TOPLEFT", 10, -5)
+	leader:SetPoint("BOTTOMRIGHT", hp, "TOPLEFT", 10, -6)
 	self.Leader = leader
 
 	local masterlooter = hp:CreateTexture(nil, 'OVERLAY')
@@ -604,7 +604,7 @@ local func = function(self, unit)
 			name:SetPoint("RIGHT", hp)
 		else
 			name:SetPoint("LEFT", hp, 2, 0)
-			name:SetPoint("RIGHT", hpp, -15, 0)
+			name:SetPoint("RIGHT", hp, -55, 0)
 			name:SetJustifyH"LEFT"
 		end
 		name:SetFont(font, fontsize)
