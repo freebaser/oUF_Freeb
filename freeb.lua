@@ -13,6 +13,7 @@ local healbar = false
 local bossframes = true
 local auraborders = false
 local classColorbars = false
+local portraits = true
 
 if overrideBlizzbuffs then
 	BuffFrame:Hide()
@@ -158,6 +159,8 @@ local auraIcon = function(self, button, icons)
 		button.overlay:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 2, -2)
 		button.overlay:SetTexCoord(0, 1, 0.02, 1)
 		button.overlay.Hide = function(self) self:SetVertexColor(0.33, 0.59, 0.33) end
+	else
+		button.overlay:Hide()
 	end
 	----------------------------
 	
@@ -269,17 +272,19 @@ end
 
 local UnitSpecific = {
 	player = function(self)
-		self.Portrait = CreateFrame("PlayerModel", nil, self)
-		self.Portrait:SetWidth(60)
-		self.Portrait:SetHeight(40)
-		self.Portrait:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, -10)
-		self.PorBackdrop = CreateFrame("Frame", nil, self)
-		self.PorBackdrop:SetPoint("TOPLEFT", self.Portrait, "TOPLEFT", -4, 4)
-		self.PorBackdrop:SetPoint("BOTTOMRIGHT", self.Portrait, "BOTTOMRIGHT", 4, -4)
-		self.PorBackdrop:SetFrameStrata("LOW")
-		self.PorBackdrop:SetBackdrop(frameBD)
-		self.PorBackdrop:SetBackdropColor(0, 0, 0, 0)
-		self.PorBackdrop:SetBackdropBorderColor(0, 0, 0)
+		if portraits then
+			self.Portrait = CreateFrame("PlayerModel", nil, self)
+			self.Portrait:SetWidth(60)
+			self.Portrait:SetHeight(40)
+			self.Portrait:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, -10)
+			self.PorBackdrop = CreateFrame("Frame", nil, self)
+			self.PorBackdrop:SetPoint("TOPLEFT", self.Portrait, "TOPLEFT", -4, 4)
+			self.PorBackdrop:SetPoint("BOTTOMRIGHT", self.Portrait, "BOTTOMRIGHT", 4, -4)
+			self.PorBackdrop:SetFrameStrata("LOW")
+			self.PorBackdrop:SetBackdrop(frameBD)
+			self.PorBackdrop:SetBackdropColor(0, 0, 0, 0)
+			self.PorBackdrop:SetBackdropBorderColor(0, 0, 0)
+		end
 
 		local ppp = self.Health:CreateFontString(nil, "OVERLAY")
 		ppp:SetPoint("LEFT", 2, 0)
@@ -316,6 +321,39 @@ local UnitSpecific = {
 		end
 		self.Runes = runes
 		
+		local _, class = UnitClass("player")
+		if IsAddOnLoaded("oUF_TotemBar") and class == "SHAMAN" then
+			self.TotemBar = {}
+			self.TotemBar.Destroy = true
+			for i = 1, 4 do
+				self.TotemBar[i] = CreateFrame("StatusBar", nil, self)
+				self.TotemBar[i]:SetHeight(16)
+				self.TotemBar[i]:SetWidth(150/4 - 5)
+				if (i == 1) then
+					self.TotemBar[i]:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -33)
+				else
+					self.TotemBar[i]:SetPoint("RIGHT", self.TotemBar[i-1], "LEFT", -5, 0)
+				end
+				self.TotemBar[i]:SetStatusBarTexture(texture)
+				self.TotemBar[i]:SetBackdrop(backdrop)
+				self.TotemBar[i]:SetBackdropColor(0.5, 0.5, 0.5)
+				self.TotemBar[i]:SetMinMaxValues(0, 1)
+				
+				self.TotemBar[i].bg = self.TotemBar[i]:CreateTexture(nil, "BORDER")
+				self.TotemBar[i].bg:SetAllPoints(self.TotemBar[i])
+				self.TotemBar[i].bg:SetTexture(texture)
+				self.TotemBar[i].bg.multiplier = 0.3
+				
+				self.TotemBar[i].bd = CreateFrame("Frame", nil, self)
+				self.TotemBar[i].bd:SetPoint("TOPLEFT", self.TotemBar[i], "TOPLEFT", -4, 4)
+				self.TotemBar[i].bd:SetPoint("BOTTOMRIGHT", self.TotemBar[i], "BOTTOMRIGHT", 4, -4)
+				self.TotemBar[i].bd:SetFrameStrata("LOW")
+				self.TotemBar[i].bd:SetBackdrop(frameBD)
+				self.TotemBar[i].bd:SetBackdropColor(0, 0, 0, 0)
+				self.TotemBar[i].bd:SetBackdropBorderColor(0, 0, 0)
+			end
+		end
+		
 		if(IsAddOnLoaded('oUF_Experience')) then
 			self.Experience = CreateFrame('StatusBar', nil, self)
 			self.Experience:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 0, -2)
@@ -349,7 +387,7 @@ local UnitSpecific = {
 		if overrideBlizzbuffs then
 			local buffs = CreateFrame("Frame", nil, self)
 			buffs:SetHeight(32)
-			buffs:SetWidth(400)
+			buffs:SetWidth(32*12)
 			buffs.initialAnchor = "TOPRIGHT"
 			buffs.spacing = 5
 			buffs.num = 40
@@ -359,6 +397,18 @@ local UnitSpecific = {
 			buffs.size = 32
 
 			self.Buffs = buffs
+			
+			if (IsAddOnLoaded('oUF_WeaponEnchant')) then
+				self.Enchant = CreateFrame('Frame', nil, self)
+				self.Enchant.size = 32
+				self.Enchant:SetHeight(32)
+				self.Enchant:SetWidth(self.Enchant.size * 3)
+				self.Enchant:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -390, -140)
+				self.Enchant["growth-y"] = "DOWN"
+				self.Enchant["growth-x"] = "LEFT"
+				self.Enchant.spacing = 5
+				self.PostCreateEnchantIcon = auraIcon
+			end
 		end
 
 		if auras then 
@@ -376,17 +426,19 @@ local UnitSpecific = {
 	end,
 		
 	target = function(self)
-		self.Portrait = CreateFrame("PlayerModel", nil, self)
-		self.Portrait:SetWidth(60)
-		self.Portrait:SetHeight(40)
-		self.Portrait:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -10)
-		self.PorBackdrop = CreateFrame("Frame", nil, self)
-		self.PorBackdrop:SetPoint("TOPLEFT", self.Portrait, "TOPLEFT", -4, 4)
-		self.PorBackdrop:SetPoint("BOTTOMRIGHT", self.Portrait, "BOTTOMRIGHT", 4, -4)
-		self.PorBackdrop:SetFrameStrata("LOW")
-		self.PorBackdrop:SetBackdrop(frameBD)
-		self.PorBackdrop:SetBackdropColor(0, 0, 0, 0)
-		self.PorBackdrop:SetBackdropBorderColor(0, 0, 0)
+		if portraits then
+			self.Portrait = CreateFrame("PlayerModel", nil, self)
+			self.Portrait:SetWidth(60)
+			self.Portrait:SetHeight(40)
+			self.Portrait:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -10)
+			self.PorBackdrop = CreateFrame("Frame", nil, self)
+			self.PorBackdrop:SetPoint("TOPLEFT", self.Portrait, "TOPLEFT", -4, 4)
+			self.PorBackdrop:SetPoint("BOTTOMRIGHT", self.Portrait, "BOTTOMRIGHT", 4, -4)
+			self.PorBackdrop:SetFrameStrata("LOW")
+			self.PorBackdrop:SetBackdrop(frameBD)
+			self.PorBackdrop:SetBackdropColor(0, 0, 0, 0)
+			self.PorBackdrop:SetBackdropBorderColor(0, 0, 0)
+		end
 
 		if auras then
 			local buffs = CreateFrame("Frame", nil, self)
@@ -414,27 +466,34 @@ local UnitSpecific = {
 			--self.Debuffs.num = 24
 		end
 		
-		self.CPoints = self.Portrait:CreateFontString(nil, 'OVERLAY')
+		if portraits then
+			self.CPoints = self.Portrait:CreateFontString(nil, 'OVERLAY')
+			self.CPoints:SetPoint('CENTER', self.Portrait)
+		else
+			self.CPoints = self:CreateFontString(nil, 'OVERLAY')
+			self.CPoints:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', -5, -5)
+		end
 		self.CPoints:SetFont(font, 32, "THINOUTLINE")
 		self.CPoints:SetShadowOffset(1, -1)
-		self.CPoints:SetPoint('CENTER', self.Portrait)
 		self.CPoints:SetTextColor(1, 0, 0)
 		self.CPoints.unit = PlayerFrame.unit
 		self:RegisterEvent('UNIT_COMBO_POINTS', updateCombo)
 	end,
 
 	focus = function(self)
-		self.Portrait = CreateFrame("PlayerModel", nil, self)
-		self.Portrait:SetWidth(60)
-		self.Portrait:SetHeight(40)
-		self.Portrait:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -10)
-		self.PorBackdrop = CreateFrame("Frame", nil, self)
-		self.PorBackdrop:SetPoint("TOPLEFT", self.Portrait, "TOPLEFT", -4, 4)
-		self.PorBackdrop:SetPoint("BOTTOMRIGHT", self.Portrait, "BOTTOMRIGHT", 4, -4)
-		self.PorBackdrop:SetFrameStrata("LOW")
-		self.PorBackdrop:SetBackdrop(frameBD)
-		self.PorBackdrop:SetBackdropColor(0, 0, 0, 0)
-		self.PorBackdrop:SetBackdropBorderColor(0, 0, 0)
+		if portraits then
+			self.Portrait = CreateFrame("PlayerModel", nil, self)
+			self.Portrait:SetWidth(60)
+			self.Portrait:SetHeight(40)
+			self.Portrait:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -10)
+			self.PorBackdrop = CreateFrame("Frame", nil, self)
+			self.PorBackdrop:SetPoint("TOPLEFT", self.Portrait, "TOPLEFT", -4, 4)
+			self.PorBackdrop:SetPoint("BOTTOMRIGHT", self.Portrait, "BOTTOMRIGHT", 4, -4)
+			self.PorBackdrop:SetFrameStrata("LOW")
+			self.PorBackdrop:SetBackdrop(frameBD)
+			self.PorBackdrop:SetBackdropColor(0, 0, 0, 0)
+			self.PorBackdrop:SetBackdropBorderColor(0, 0, 0)
+		end
 	
 		if auras then 
 			local debuffs = CreateFrame("Frame", nil, self)
@@ -660,13 +719,15 @@ oUF:RegisterStyle("Freeb", func)
 oUF:SetActiveStyle"Freeb"
 
 local player = oUF:Spawn"player"
-player:SetPoint("CENTER", -200, -150)
+player:SetPoint("CENTER", -234, -192)
 local target = oUF:Spawn"target"
-target:SetPoint("CENTER", 200, -150)
+target:SetPoint("CENTER", 234, -192)
 local tot = oUF:Spawn"targettarget"
-tot:SetPoint("CENTER", 0, -150)
+tot:SetPoint("CENTER", 0, -192)
 local focus = oUF:Spawn"focus"
 focus:SetPoint("CENTER", 500, 0)
+local focustarget = oUF:Spawn"focustarget"
+focustarget:SetPoint("RIGHT", oUF.units.focus, "LEFT", -10, 0)
 local pet = oUF:Spawn"pet"
 pet:SetPoint("RIGHT", oUF.units.player, "LEFT", -10, 0)
 
