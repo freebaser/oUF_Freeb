@@ -4,12 +4,13 @@ local font, fontsize = mediaPath.."myriad.ttf", 12
 local glowTex = mediaPath.."glowTex"
 local buttonTex = mediaPath.."buttontex"
 local height, width = 22, 220
+local scale = 1.0
 
 local overrideBlizzbuffs = false 
 local castbars = true	-- disable castbars
 local auras = true	-- disable all auras
-local healtext = false
-local healbar = false
+local healtext = false -- Healcomm support
+local healbar = false	-- Healcomm support
 local bossframes = true
 local auraborders = false
 local classColorbars = false
@@ -708,6 +709,8 @@ local func = function(self, unit)
 
 	self.PostCreateAuraIcon = auraIcon
 	self.PostUpdateAuraIcon = updateDebuff
+	
+	self:SetAttribute('initial-scale', scale)
 
 	if(UnitSpecific[unit]) then
 		return UnitSpecific[unit](self)
