@@ -205,6 +205,10 @@ local castbar = function(self, unit)
 		cb:SetWidth(150)
 		cb:SetToplevel(true)
 		
+		cb.Spark = cb:CreateTexture(nil, "OVERLAY")
+		cb.Spark:SetBlendMode("ADD")
+		cb.Spark:SetHeight(48)
+		
 		local cbbg = cb:CreateTexture(nil, "BACKGROUND")
 		cbbg:SetAllPoints(cb)
 		cbbg:SetTexture(texture)
@@ -268,6 +272,7 @@ local castbar = function(self, unit)
 		
 		cb.bg = cbbg
 		self.Castbar = cb
+
 	end
 end
 
