@@ -195,10 +195,15 @@ local updateHealth = function(self, event, unit, bar)
 	bar:SetStatusBarColor(r, g, b)
 end
 
+local fixStatusbar = function(bar)
+	bar:GetStatusBarTexture():SetHorizTile(false)
+end
+
 local castbar = function(self, unit)
 	if (unit == "target" or unit == "player" or unit == "focus") then
 		local cb = CreateFrame"StatusBar"
 		cb:SetStatusBarTexture(texture, "OVERLAY")
+		fixStatusbar(cb)
 		cb:SetStatusBarColor(1, .25, .35, .5)
 		cb:SetParent(self)
 		cb:SetHeight(16)
@@ -313,6 +318,7 @@ local UnitSpecific = {
 		for i = 1, 6 do
 			local bar = CreateFrame("Statusbar", nil, runes)
 			bar:SetStatusBarTexture(texture)
+			fixStatusbar(bar)
 			bar:SetBackdrop(backdrop)
 			bar:SetBackdropColor(.05, .05, .05, 1)
 			bar:SetFrameLevel(2)
@@ -341,6 +347,7 @@ local UnitSpecific = {
 					self.TotemBar[i]:SetPoint("RIGHT", self.TotemBar[i-1], "LEFT", -5, 0)
 				end
 				self.TotemBar[i]:SetStatusBarTexture(texture)
+				fixStatusbar(self.TotemBar[i])
 				self.TotemBar[i]:SetBackdrop(backdrop)
 				self.TotemBar[i]:SetBackdropColor(0.5, 0.5, 0.5)
 				self.TotemBar[i]:SetMinMaxValues(0, 1)
@@ -366,12 +373,14 @@ local UnitSpecific = {
 			self.Experience:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', 0, -2)
 			self.Experience:SetHeight(4)
 			self.Experience:SetStatusBarTexture(texture)
+			fixStatusbar(self.Experience)
 			self.Experience:SetStatusBarColor(0, 0.7, 1)
 			self.Experience.Tooltip = true
 
 			self.Experience.Rested = CreateFrame('StatusBar', nil, self)
 			self.Experience.Rested:SetAllPoints(self.Experience)
 			self.Experience.Rested:SetStatusBarTexture(texture)
+			fixStatusbar(self.Experience.Rested)
 			self.Experience.Rested:SetStatusBarColor(0, 0.4, 1, 0.6)
 			self.Experience.Rested:SetBackdrop(backdrop)
 			self.Experience.Rested:SetBackdropColor(0, 0, 0)
@@ -573,6 +582,7 @@ local func = function(self, unit)
 		hp:SetHeight(height*.88)
 	end
 	hp:SetStatusBarTexture(texture)
+	fixStatusbar(hp)
 	hp:SetStatusBarColor(.1, .1, .1)
 
 	hp.frequentUpdates = true
@@ -610,6 +620,7 @@ local func = function(self, unit)
 		local pp = CreateFrame"StatusBar"
 		pp:SetHeight(height*.07)
 		pp:SetStatusBarTexture(texture)
+		fixStatusbar(pp)
 		pp:SetStatusBarColor(1, 1, 1)
 
 		pp.frequentUpdates = true
@@ -645,6 +656,7 @@ local func = function(self, unit)
 		self.HealCommBar:SetHeight(0)
 		self.HealCommBar:SetWidth(0)	
 		self.HealCommBar:SetStatusBarTexture(texture)
+		fixStatusbar(self.HealCommBar)
 		self.HealCommBar:SetStatusBarColor(0, 1, 0, 0.4)
 		self.HealCommBar:SetPoint('LEFT', hp, 'LEFT')
 		self.allowHealCommOverflow = true
