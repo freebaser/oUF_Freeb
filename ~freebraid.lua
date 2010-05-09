@@ -23,7 +23,7 @@ local updateRIcon = function(self, event)
 	end
 end
 
-local updateHealth = function(self, event, unit, bar)
+local updateHealth = function(health, unit)
 	local r, g, b, t
 	if(UnitIsPlayer(unit)) then
 		local _, class = UnitClass(unit)
@@ -36,7 +36,7 @@ local updateHealth = function(self, event, unit, bar)
 		r, g, b = t[1], t[2], t[3]
 	end
 
-	bar:SetStatusBarColor(r, g, b)
+	health:SetStatusBarColor(r, g, b)
 end
 
 
@@ -72,7 +72,7 @@ local func = function(self, unit)
 	hp.bg = hpbg
 	self.Health = hp
 
-	self.OverrideUpdateHealth = updateHealth
+	hp.PostUpdate = updateHealth
 
 	local info = hp:CreateFontString(nil, "OVERLAY")
 	info:SetPoint("LEFT", hp)
@@ -80,7 +80,7 @@ local func = function(self, unit)
 	info:SetFont(font, fontsize)
 	info:SetShadowOffset(1, -1)
 	info:SetTextColor(1, 1, 1)
-	self:Tag(info, '[freebraidInfo]')
+	self:Tag(info, '[freebraid:info]')
 
 	local ricon = hp:CreateFontString(nil, "OVERLAY")
 	ricon:SetPoint("BOTTOM", hp, "TOP", 0 , -10)
@@ -101,13 +101,8 @@ end
 oUF:RegisterStyle("Freebraid", func)
 oUF:SetActiveStyle"Freebraid"
 
-local raid = oUF:Spawn('header', 'Raid_Freeb', nil, 'party')
-raid:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 5, -20)
-raid:SetManyAttributes(
+local raid = oUF:SpawnHeader('Raid_Freeb', nil, 'raid,party,solo',
 	'showPlayer', true,
-	'showSolo', false,
-	'showParty', true,
-	'showRaid', true,
 	'xoffset', 5,
 	'yOffset', -5,
 	'point', "LEFT",
@@ -119,4 +114,4 @@ raid:SetManyAttributes(
 	'columnSpacing', 5,
 	'columnAnchorPoint', "TOP"
 )
-raid:Show()
+raid:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 5, -20)

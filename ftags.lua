@@ -27,12 +27,12 @@ local colors = setmetatable({
 		["POWER_TYPE_STEAM"] = {0.55,0.57,0.61},
 		["POWER_TYPE_PYRITE"] = {0.60,0.09,0.17},
 		["POWER_TYPE_HEAT"] = {0.55,0.57,0.61},
-      		["POWER_TYPE_OOZE"] = {0.75686281919479,1,0},
-      		["POWER_TYPE_BLOOD_POWER"] = {0.73725494556129,0,1},
+      	["POWER_TYPE_OOZE"] = {0.75686281919479,1,0},
+      	["POWER_TYPE_BLOOD_POWER"] = {0.73725494556129,0,1},
 	}, {__index = oUF.colors.power}),
 }, {__index = oUF.colors})
 
-oUF.Tags["[freebLvl]"] = function(u) 
+oUF.Tags['freeb:lvl'] = function(u) 
 	local level = UnitLevel(u)
 	local typ = UnitClassification(u)
 	local color = GetQuestDifficultyColor(level)
@@ -53,19 +53,19 @@ oUF.Tags["[freebLvl]"] = function(u)
 	end
 end
 
-oUF.Tags['[freebHp]']  = function(u) 
-	local min = UnitHealth(u)
-	return siValue(min).." | "..oUF.Tags['[perhp]'](u).."%"
+oUF.Tags['freeb:hp']  = function(u) 
+	local min, max = UnitHealth(u), UnitHealthMax(u)
+	return siValue(min).." | "..math.floor(min/max*100+.5).."%"
 end
-oUF.TagEvents['[freebHp]'] = 'UNIT_HEALTH'
+oUF.TagEvents['freeb:hp'] = 'UNIT_HEALTH'
 
-oUF.Tags['[freebPp]'] = function(u)
+oUF.Tags['freeb:pp'] = function(u)
 	local _, str = UnitPowerType(u)
 	return hex(colors.power[str])..siValue(UnitPower(u))
 end
-oUF.TagEvents['[freebPp]'] = 'UNIT_ENERGY UNIT_FOCUS UNIT_MANA UNIT_RAGE UNIT_RUNIC_POWER'
+oUF.TagEvents['freeb:pp'] = 'UNIT_ENERGY UNIT_FOCUS UNIT_MANA UNIT_RAGE UNIT_RUNIC_POWER'
 
-oUF.Tags["[freebColor]"] = function(u, r)
+oUF.Tags['freeb:color'] = function(u, r)
 	local _, class = UnitClass(u)
 	local reaction = UnitReaction(u, "player")
 	
@@ -81,29 +81,29 @@ oUF.Tags["[freebColor]"] = function(u, r)
 		return hex(1, 1, 1)
 	end
 end
-oUF.TagEvents['[freebColor]'] = 'UNIT_REACTION UNIT_HEALTH UNIT_HAPPINESS'
+oUF.TagEvents['freeb:color'] = 'UNIT_REACTION UNIT_HEALTH UNIT_HAPPINESS'
 
-oUF.Tags["[freebName]"] = function(u, r)
+oUF.Tags['freeb:name'] = function(u, r)
 	local name = string.upper(UnitName(r or u))
 
 	return name
 end
-oUF.TagEvents['[freebName]'] = 'UNIT_NAME_UPDATE'
+oUF.TagEvents['freeb:name'] = 'UNIT_NAME_UPDATE'
 
-oUF.Tags["[freebInfo]"] = function(u)
+oUF.Tags['freeb:info'] = function(u)
 	if UnitIsDead(u) then
-		return oUF.Tags['[freebLvl]'](u).."|cffCFCFCF Dead|r"
+		return oUF.Tags['freeb:lvl'](u).."|cffCFCFCF Dead|r"
 	elseif UnitIsGhost(u) then
-		return oUF.Tags['[freebLvl]'](u).."|cffCFCFCF Ghost|r"
+		return oUF.Tags['freeb:lvl'](u).."|cffCFCFCF Ghost|r"
 	elseif not UnitIsConnected(u) then
-		return oUF.Tags['[freebLvl]'](u).."|cffCFCFCF D/C|r"
+		return oUF.Tags['freeb:lvl'](u).."|cffCFCFCF D/C|r"
 	else
-		return oUF.Tags['[freebLvl]'](u)
+		return oUF.Tags['freeb:lvl'](u)
 	end
 end
-oUF.TagEvents['[freebInfo]'] = 'UNIT_HEALTH'
+oUF.TagEvents['freeb:info'] = 'UNIT_HEALTH'
 
-oUF.Tags["[freebraidInfo]"] = function(u)
+oUF.Tags['freebraid:info'] = function(u)
 	local _, class = UnitClass(u)
 
 	if UnitIsDead(u) then
@@ -116,4 +116,4 @@ oUF.Tags["[freebraidInfo]"] = function(u)
 		return " "
 	end
 end
-oUF.TagEvents['[freebraidInfo]'] = 'UNIT_HEALTH'
+oUF.TagEvents['freebraid:info'] = 'UNIT_HEALTH'

@@ -33,7 +33,7 @@ local frameBD = {
 
 local menu = function(self)
 	local unit = self.unit:sub(1, -2)
-	local cunit = self.unit:gsub("(.)", string.upper, 1)
+	local cunit = self.unit:gsub("^%l", string.upper)
 
 	if(cunit == 'Vehicle') then
 		cunit = 'Pet'
@@ -52,18 +52,6 @@ local updateRIcon = function(self, event)
 		self.RIcon:SetText(ICON_LIST[index].."22|t")
 	else
 		self.RIcon:SetText()
-	end
-end
-
-local function updateCombo(self, event, unit)
-	if(unit == PlayerFrame.unit and unit ~= self.CPoints.unit) then
-		self.CPoints.unit = unit
-	end
-end
-
-local CancelAura = function(self, button)
-	if button == "RightButton" and not self.debuff then
-		CancelUnitBuff("player", self:GetID())
 	end
 end
 
@@ -110,38 +98,12 @@ local debuffFilter = {
 	[GetSpellInfo(7386)] = true, -- Sunder
 }
 
-local function updateDebuff(self, icons, unit, icon, index)
-	local name, _, _, _, dtype, duration, expirationTime, unitCaster = UnitAura(unit, index, icon.filter)
- 
-	if(icon.debuff and self.unit == 'target') then
-		if(not debuffFilter[name] and not UnitIsFriend('player', unit) and icon.owner ~= 'player' and icon.owner ~= 'vehicle') then
-			icon:SetBackdropColor(0, 0, 0)
-			icon.icon:SetDesaturated(true)
-		else
-			local color = DebuffTypeColor[dtype] or DebuffTypeColor.none
-			icon:SetBackdropColor(color.r * 0.6, color.g * 0.6, color.b * 0.6)
-			icon.icon:SetDesaturated(false)
-		end
-	end
-
-	if duration and duration > 0 then
-		icon.remaining:Show()
-	else
-		icon.remaining:Hide()
-	end
-
-	icon.duration = duration
-	icon.timeLeft = expirationTime
-	icon.first = true
-	icon:SetScript("OnUpdate", CreateAuraTimer)
-end
-
-local auraIcon = function(self, button, icons)
+local auraIcon = function(auras, button)
 	local count = button.count
 	count:ClearAllPoints()
 	count:SetPoint("BOTTOMRIGHT", 3, -3)
 	
-	icons.disableCooldown = true	
+	auras.disableCooldown = true
 
 	button.icon:SetTexCoord(.1, .9, .1, .9)
 	button.bg = CreateFrame("Frame", nil, button)
@@ -152,9 +114,8 @@ local auraIcon = function(self, button, icons)
 	button.bg:SetBackdropColor(0, 0, 0, 0)
 	button.bg:SetBackdropBorderColor(0, 0, 0)
 
-	------------------------
 	if auraborders then
-		icons.showDebuffType = true
+		auras.showDebuffType = true
 		button.overlay:SetTexture(buttonTex)
 		button.overlay:SetPoint("TOPLEFT", button, "TOPLEFT", -2, 2)
 		button.overlay:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 2, -2)
@@ -163,20 +124,46 @@ local auraIcon = function(self, button, icons)
 	else
 		button.overlay:Hide()
 	end
-	----------------------------
 	
 	local remaining = button:CreateFontString(nil, "OVERLAY")
 	remaining:SetPoint("TOPLEFT", -3, 2)
 	remaining:SetFont(font, 12, "OUTLINE")
 	remaining:SetTextColor(.8, .8, .8)
 	button.remaining = remaining
-	
-	if self.unit == "player" then
-		button:SetScript("OnMouseUp", CancelAura)
+end
+
+local PostUpdateIcon
+do
+	local playerUnits = {
+		player = true,
+		pet = true,
+		vehicle = true,
+	}
+
+	PostUpdateIcon = function(icons, unit, icon, index)
+		local name, _, _, _, dtype, duration, expirationTime, unitCaster = UnitAura(unit, index, icon.filter)
+		
+		local texture = icon.icon
+		if(playerUnits[icon.owner]) or debuffFilter[name] then
+			texture:SetDesaturated(false)
+		else
+			texture:SetDesaturated(true)
+		end
+		
+		if duration and duration > 0 then
+			icon.remaining:Show()
+		else
+			icon.remaining:Hide()
+		end
+		
+		icon.duration = duration
+		icon.timeLeft = expirationTime
+		icon.first = true
+		icon:SetScript("OnUpdate", CreateAuraTimer)
 	end
 end
 
-local updateHealth = function(self, event, unit, bar)
+local updateHealth = function(health, unit)
 	local r, g, b, t
 	local reaction = UnitReaction(unit, "player")
 	if(UnitIsPlayer(unit)) then
@@ -192,7 +179,7 @@ local updateHealth = function(self, event, unit, bar)
 		r, g, b = t[1], t[2], t[3]
 	end
 
-	bar:SetStatusBarColor(r, g, b)
+	health:SetStatusBarColor(r, g, b)
 end
 
 local fixStatusbar = function(bar)
@@ -224,11 +211,11 @@ local castbar = function(self, unit)
 		cb.Time:SetShadowOffset(1, -1)
 		cb.Time:SetPoint("RIGHT", cb, -2, 0)
 		cb.CustomTimeText = function(self, duration)
-                  if self.casting then
-                    self.Time:SetFormattedText("%.1f", self.max - duration)
-                  elseif self.channeling then
-                    self.Time:SetFormattedText("%.1f", duration)
-                  end
+			if self.casting then
+				self.Time:SetFormattedText("%.1f", self.max - duration)
+			elseif self.channeling then
+				self.Time:SetFormattedText("%.1f", duration)
+			end
 	  	end
 
 		cb.Text = cb:CreateFontString(nil, "OVERLAY")
@@ -302,7 +289,7 @@ local UnitSpecific = {
 		ppp:SetFont(font, fontsize)
 		ppp:SetShadowOffset(1, -1)
 		ppp:SetTextColor(1, 1, 1)
-		self:Tag(ppp, '[freebPp]')
+		self:Tag(ppp, '[freeb:pp]')
 			
 		local runes = CreateFrame("Frame", nil, self)
 		runes:SetHeight(16)
@@ -410,6 +397,9 @@ local UnitSpecific = {
 			buffs["growth-y"] = "DOWN"
 			buffs:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -10, -10)
 			buffs.size = 32
+			
+			buffs.PostCreateIcon = auraIcon
+			buffs.PostUpdateIcon = PostUpdateIcon
 
 			self.Buffs = buffs
 			
@@ -434,6 +424,9 @@ local UnitSpecific = {
 			debuffs.spacing = 4
 			debuffs.size = height+2
 			debuffs.initialAnchor = "BOTTOMLEFT"
+			
+			debuffs.PostCreateIcon = auraIcon
+			debuffs.PostUpdateIcon = PostUpdateIcon
 
 			self.Debuffs = debuffs
 			self.Debuffs.num = 5 
@@ -466,6 +459,9 @@ local UnitSpecific = {
 			buffs["growth-y"] = "DOWN"
 			buffs:SetPoint("LEFT", self, "RIGHT", 4, 0)
 			buffs.size = height
+			
+			buffs.PostCreateIcon = auraIcon
+			buffs.PostUpdateIcon = PostUpdateIcon
 
 			self.Buffs = buffs
 
@@ -476,23 +472,30 @@ local UnitSpecific = {
 			debuffs.spacing = 4
 			debuffs.size = height+2
 			debuffs.initialAnchor = "BOTTOMLEFT"
+			
+			debuffs.PostCreateIcon = auraIcon
+			debuffs.PostUpdateIcon = PostUpdateIcon
 		
 			self.Debuffs = debuffs
-			--self.Debuffs.num = 24
+			self.Debuffs.num = 32
 		end
 		
 		if portraits then
-			self.CPoints = self.Portrait:CreateFontString(nil, 'OVERLAY')
-			self.CPoints:SetPoint('CENTER', self.Portrait)
+			local cpoints = self.Portrait:CreateFontString(nil, 'OVERLAY')
+			cpoints:SetPoint('CENTER', self.Portrait)
+			cpoints:SetFont(font, 32, "THINOUTLINE")
+			cpoints:SetShadowOffset(1, -1)
+			cpoints:SetTextColor(1, 0, 0)
+			self:Tag(cpoints, '[cpoints]')
 		else
-			self.CPoints = self:CreateFontString(nil, 'OVERLAY')
-			self.CPoints:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', -5, -5)
+			local cpoints = self:CreateFontString(nil, 'OVERLAY')
+			cpoints:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', -5, -5)
+			cpoints:SetFont(font, 32, "THINOUTLINE")
+			cpoints:SetShadowOffset(1, -1)
+			cpoints:SetTextColor(1, 0, 0)
+			self:Tag(cpoints, '[cpoints]')
 		end
-		self.CPoints:SetFont(font, 32, "THINOUTLINE")
-		self.CPoints:SetShadowOffset(1, -1)
-		self.CPoints:SetTextColor(1, 0, 0)
-		self.CPoints.unit = PlayerFrame.unit
-		self:RegisterEvent('UNIT_COMBO_POINTS', updateCombo)
+		
 	end,
 
 	focus = function(self)
@@ -518,6 +521,9 @@ local UnitSpecific = {
 			debuffs.spacing = 4
 			debuffs.size = height+2
 			debuffs.initialAnchor = "BOTTOMLEFT"
+			
+			debuffs.PostCreateIcon = auraIcon
+			debuffs.PostUpdateIcon = PostUpdateIcon
 
 			self.Debuffs = debuffs
 			self.Debuffs.num = 8
@@ -533,6 +539,9 @@ local UnitSpecific = {
 			debuffs.spacing = 4
 			debuffs.size = height+2
 			debuffs.initialAnchor = "BOTTOMLEFT"
+			
+			debuffs.PostCreateIcon = auraIcon
+			debuffs.PostUpdateIcon = PostUpdateIcon
 
 			self.Debuffs = debuffs
 			self.Debuffs.num = 8
@@ -548,6 +557,9 @@ local UnitSpecific = {
 			debuffs.spacing = 4
 			debuffs.size = height+2
 			debuffs.initialAnchor = "BOTTOMLEFT"
+			
+			debuffs.PostCreateIcon = auraIcon
+			debuffs.PostUpdateIcon = PostUpdateIcon
 
 			self.Debuffs = debuffs
 			self.Debuffs.num = 5 
@@ -598,7 +610,7 @@ local func = function(self, unit)
 	hpbg:SetTexture(texture)
 
 	if classColorbars then
-		self.OverrideUpdateHealth = updateHealth
+		hp.PostUpdate = updateHealth
 		hpbg:SetVertexColor(.15,.15,.15)
 	else
 		hpbg:SetVertexColor(.3,.3,.3)
@@ -610,7 +622,7 @@ local func = function(self, unit)
 		hpp:SetFont(font, fontsize)
 		hpp:SetShadowOffset(1, -1)
 		hpp:SetTextColor(1, 1, 1)
-		self:Tag(hpp, '[freebHp]')
+		self:Tag(hpp, '[freeb:hp]')
 	end
 
 	hp.bg = hpbg
@@ -690,15 +702,15 @@ local func = function(self, unit)
 		
 		if classColorbars then
 			if(unit == "targettarget") then
-				self:Tag(name, '[freebName]')
+				self:Tag(name, '[freeb:name]')
 			else
-				self:Tag(name, '[freebName] [freebInfo]')
+				self:Tag(name, '[freeb:name] [freeb:info]')
 			end
 		else
 			if(unit == "targettarget") then
-				self:Tag(name, '[freebColor][freebName]')
+				self:Tag(name, '[freeb:color][freeb:name]')
 			else
-				self:Tag(name, '[freebColor][freebName] [freebInfo]')
+				self:Tag(name, '[freeb:color][freeb:name] [freeb:info]')
 			end
 		end
 	end
@@ -723,9 +735,6 @@ local func = function(self, unit)
 	end
 
 	self.disallowVehicleSwap = true
-
-	self.PostCreateAuraIcon = auraIcon
-	self.PostUpdateAuraIcon = updateDebuff
 	
 	self:SetAttribute('initial-scale', scale)
 
@@ -735,21 +744,14 @@ local func = function(self, unit)
 end
 
 oUF:RegisterStyle("Freeb", func)
-
 oUF:SetActiveStyle"Freeb"
 
-local player = oUF:Spawn"player"
-player:SetPoint("CENTER", -234, -192)
-local target = oUF:Spawn"target"
-target:SetPoint("CENTER", 234, -192)
-local tot = oUF:Spawn"targettarget"
-tot:SetPoint("CENTER", 0, -192)
-local focus = oUF:Spawn"focus"
-focus:SetPoint("CENTER", 500, 0)
-local focustarget = oUF:Spawn"focustarget"
-focustarget:SetPoint("RIGHT", oUF.units.focus, "LEFT", -10, 0)
-local pet = oUF:Spawn"pet"
-pet:SetPoint("RIGHT", oUF.units.player, "LEFT", -10, 0)
+oUF:Spawn"player":SetPoint("CENTER", -234, -192)
+oUF:Spawn"target":SetPoint("CENTER", 234, -192)
+oUF:Spawn"targettarget":SetPoint("CENTER", 0, -192)
+oUF:Spawn"focus":SetPoint("CENTER", 500, 0)
+oUF:Spawn"focustarget":SetPoint("RIGHT", oUF.units.focus, "LEFT", -10, 0)
+oUF:Spawn"pet":SetPoint("RIGHT", oUF.units.player, "LEFT", -10, 0)
 
 if bossframes then
 	local boss = {}
