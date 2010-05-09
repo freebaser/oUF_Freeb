@@ -103,6 +103,9 @@ oUF:SetActiveStyle"Freebraid"
 
 local raid = oUF:SpawnHeader('Raid_Freeb', nil, 'raid,party,solo',
 	'showPlayer', true,
+	'showSolo', false,
+	'showParty', true,
+	'showRaid', true,
 	'xoffset', 5,
 	'yOffset', -5,
 	'point', "LEFT",
