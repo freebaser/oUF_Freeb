@@ -140,11 +140,11 @@ do
 		vehicle = true,
 	}
 
-	PostUpdateIcon = function(icons, unit, icon, index)
+	PostUpdateIcon = function(icons, unit, icon, index, offset)
 		local name, _, _, _, dtype, duration, expirationTime, unitCaster = UnitAura(unit, index, icon.filter)
 		
 		local texture = icon.icon
-		if(playerUnits[icon.owner]) or debuffFilter[name] then
+		if playerUnits[icon.owner] or debuffFilter[name] or not UnitIsFriend('player', unit) and not icon.debuff then
 			texture:SetDesaturated(false)
 		else
 			texture:SetDesaturated(true)
@@ -480,22 +480,35 @@ local UnitSpecific = {
 			self.Debuffs.num = 32
 		end
 		
-		if portraits then
-			local cpoints = self.Portrait:CreateFontString(nil, 'OVERLAY')
-			cpoints:SetPoint('CENTER', self.Portrait)
-			cpoints:SetFont(font, 32, "THINOUTLINE")
-			cpoints:SetShadowOffset(1, -1)
-			cpoints:SetTextColor(1, 0, 0)
-			self:Tag(cpoints, '[cpoints]')
-		else
-			local cpoints = self:CreateFontString(nil, 'OVERLAY')
-			cpoints:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', -5, -5)
-			cpoints:SetFont(font, 32, "THINOUTLINE")
-			cpoints:SetShadowOffset(1, -1)
-			cpoints:SetTextColor(1, 0, 0)
-			self:Tag(cpoints, '[cpoints]')
+		local cpoints = self:CreateFontString(nil, 'OVERLAY')
+		cpoints:SetPoint('RIGHT', self, 'LEFT', -4, 0)
+		cpoints:SetFont(font, 24, "THINOUTLINE")
+		cpoints:SetShadowOffset(1, -1)
+		cpoints:SetTextColor(1, 0, 0)
+		self:Tag(cpoints, '[cpoints]')
+
+		self.CPoints = CreateFrame("Frame", nil, self)
+		for index = 1, MAX_COMBO_POINTS do
+			local CPoint = self:CreateTexture(nil, 'OVERLAY')
+			CPoint:SetSize(10, 10)
+			CPoint:SetTexture('Interface\\ComboFrame\\ComboPoint')
+			CPoint:SetTexCoord(0, 0.375, 0, 1)
+			CPoint:SetVertexColor(1,1,0)
+
+			if(index == 1) then
+				CPoint:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', 0, -2)
+			elseif(index == 4) then
+				CPoint:SetVertexColor(1,.6,0)
+				CPoint:SetPoint('RIGHT', self.CPoints[index - 1], 'LEFT')
+			elseif(index == 5) then
+				CPoint:SetVertexColor(1,0,0)
+				CPoint:SetPoint('RIGHT', self.CPoints[index - 1], 'LEFT')
+			else
+				CPoint:SetPoint('RIGHT', self.CPoints[index - 1], 'LEFT')
+			end
+			
+			self.CPoints[index] = CPoint
 		end
-		
 	end,
 
 	focus = function(self)
@@ -675,16 +688,34 @@ local func = function(self, unit)
 	end
 
 	local leader = hp:CreateTexture(nil, "OVERLAY")
-	leader:SetHeight(16)
-	leader:SetWidth(16)
+	leader:SetSize(16, 16)
 	leader:SetPoint("BOTTOMRIGHT", hp, "TOPLEFT", 10, -6)
 	self.Leader = leader
 
 	local masterlooter = hp:CreateTexture(nil, 'OVERLAY')
-	masterlooter:SetHeight(16)
-	masterlooter:SetWidth(16)
+	masterlooter:SetSize(16, 16)
 	masterlooter:SetPoint('LEFT', leader, 'RIGHT')
 	self.MasterLooter = masterlooter
+	
+	local LFDRole = hp:CreateTexture(nil, 'OVERLAY')
+	LFDRole:SetSize(16, 16)
+	LFDRole:SetPoint('LEFT', masterlooter, 'RIGHT')
+	self.LFDRole = LFDRole
+	
+	local PvP = hp:CreateTexture(nil, 'OVERLAY')
+	PvP:SetSize(24, 24)
+	PvP:SetPoint('TOPRIGHT', hp, 12, 8)
+	self.PvP = PvP
+	
+	local Combat = hp:CreateTexture(nil, 'OVERLAY')
+	Combat:SetSize(20, 20)
+	Combat:SetPoint('BOTTOMLEFT', hp, -10, -10)
+	self.Combat = Combat
+	
+	local Resting = hp:CreateTexture(nil, 'OVERLAY')
+	Resting:SetSize(20, 20)
+	Resting:SetPoint('TOP', Combat, 'BOTTOM', 8, 0)
+	self.Resting = Resting
 
 	if not (unit == "player") then
 		local name = hp:CreateFontString(nil, "OVERLAY")
