@@ -6,7 +6,7 @@ local buttonTex = mediaPath.."buttontex"
 local height, width = 22, 220
 local scale = 1.0
 
-local overrideBlizzbuffs = false 
+local overrideBlizzbuffs = true 
 local castbars = true	-- disable castbars
 local auras = true	-- disable all auras
 local healtext = false -- Healcomm support
@@ -186,6 +186,22 @@ local fixStatusbar = function(bar)
 	bar:GetStatusBarTexture():SetHorizTile(false)
 end
 
+local PostCastStart = function(castbar)
+	if castbar.interrupt then
+		castbar:SetStatusBarColor(.1, .9, .3, .5)
+	else
+		castbar:SetStatusBarColor(1, .25, .35, .5)
+	end
+end
+
+local CustomTimeText = function(castbar, duration)
+	if castbar.casting then
+		castbar.Time:SetFormattedText("%.1f", castbar.max - duration)
+	elseif castbar.channeling then
+		castbar.Time:SetFormattedText("%.1f", duration)
+	end
+end
+
 local castbar = function(self, unit)
 	if (unit == "target" or unit == "player" or unit == "focus") then
 		local cb = CreateFrame"StatusBar"
@@ -210,13 +226,7 @@ local castbar = function(self, unit)
 		cb.Time:SetFont(font, fontsize)
 		cb.Time:SetShadowOffset(1, -1)
 		cb.Time:SetPoint("RIGHT", cb, -2, 0)
-		cb.CustomTimeText = function(self, duration)
-			if self.casting then
-				self.Time:SetFormattedText("%.1f", self.max - duration)
-			elseif self.channeling then
-				self.Time:SetFormattedText("%.1f", duration)
-			end
-	  	end
+		cb.CustomTimeText = CustomTimeText
 
 		cb.Text = cb:CreateFontString(nil, "OVERLAY")
 		cb.Text:SetFont(font, fontsize)
@@ -233,17 +243,20 @@ local castbar = function(self, unit)
 		if (unit == "player") then
 			cb:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -10)
 			cb.Icon:SetPoint("TOPLEFT", cb, "TOPRIGHT", 7, 0)
-		else
-			cb:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, -10)
-			cb.Icon:SetPoint("TOPRIGHT", cb, "TOPLEFT", -7, 0)
-		end
-		
-		if(unit == "player") then
+			
 			cb.SafeZone = cb:CreateTexture(nil,'ARTWORK')
 			cb.SafeZone:SetPoint('TOPRIGHT')
 			cb.SafeZone:SetPoint('BOTTOMRIGHT')
 			cb.SafeZone:SetTexture(texture)
 			cb.SafeZone:SetVertexColor(.9,.7,0, 1)
+		else
+			cb:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, -10)
+			cb.Icon:SetPoint("TOPRIGHT", cb, "TOPLEFT", -7, 0)
+		end
+		
+		if (unit == 'target') then
+			cb.PostCastStart = PostCastStart
+			cb.PostChannelStart = PostCastStart
 		end
 		
 		cb.Backdrop = CreateFrame("Frame", nil, cb)
@@ -264,7 +277,6 @@ local castbar = function(self, unit)
 		
 		cb.bg = cbbg
 		self.Castbar = cb
-
 	end
 end
 
@@ -388,15 +400,15 @@ local UnitSpecific = {
 		
 		if overrideBlizzbuffs then
 			local buffs = CreateFrame("Frame", nil, self)
-			buffs:SetHeight(32)
-			buffs:SetWidth(32*12)
+			buffs:SetHeight(36)
+			buffs:SetWidth(36*12)
 			buffs.initialAnchor = "TOPRIGHT"
 			buffs.spacing = 5
 			buffs.num = 40
 			buffs["growth-x"] = "LEFT"
 			buffs["growth-y"] = "DOWN"
-			buffs:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -10, -10)
-			buffs.size = 32
+			buffs:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -10, -20)
+			buffs.size = 36
 			
 			buffs.PostCreateIcon = auraIcon
 			buffs.PostUpdateIcon = PostUpdateIcon
@@ -491,21 +503,16 @@ local UnitSpecific = {
 		for index = 1, MAX_COMBO_POINTS do
 			local CPoint = self:CreateTexture(nil, 'OVERLAY')
 			CPoint:SetSize(10, 10)
-			CPoint:SetTexture('Interface\\ComboFrame\\ComboPoint')
-			CPoint:SetTexCoord(0, 0.375, 0, 1)
 			CPoint:SetVertexColor(1,1,0)
 
 			if(index == 1) then
 				CPoint:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', 0, -2)
-			elseif(index == 4) then
-				CPoint:SetVertexColor(1,.6,0)
-				CPoint:SetPoint('RIGHT', self.CPoints[index - 1], 'LEFT')
-			elseif(index == 5) then
-				CPoint:SetVertexColor(1,0,0)
-				CPoint:SetPoint('RIGHT', self.CPoints[index - 1], 'LEFT')
 			else
 				CPoint:SetPoint('RIGHT', self.CPoints[index - 1], 'LEFT')
 			end
+			
+			if(index == 4) then CPoint:SetVertexColor(1,.6,0) end
+			if(index == 5) then CPoint:SetVertexColor(1,0,0) end
 			
 			self.CPoints[index] = CPoint
 		end
