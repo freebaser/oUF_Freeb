@@ -796,7 +796,7 @@ oUF:Factory(function(self)
 	if bossframes then
 		local boss = {}
 		for i = 1, MAX_BOSS_FRAMES do
-			local unit = self:Spawn("boss"..i)
+			local unit = self:Spawn("oUF_FreebBoss"..i)
 
 			if i==1 then
 				unit:SetPoint("CENTER", 500, 200)
