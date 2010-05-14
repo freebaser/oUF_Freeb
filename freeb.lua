@@ -782,25 +782,28 @@ local func = function(self, unit)
 end
 
 oUF:RegisterStyle("Freeb", func)
-oUF:SetActiveStyle"Freeb"
 
-oUF:Spawn"player":SetPoint("CENTER", -234, -192)
-oUF:Spawn"target":SetPoint("CENTER", 234, -192)
-oUF:Spawn"targettarget":SetPoint("CENTER", 0, -192)
-oUF:Spawn"focus":SetPoint("CENTER", 500, 0)
-oUF:Spawn"focustarget":SetPoint("RIGHT", oUF.units.focus, "LEFT", -10, 0)
-oUF:Spawn"pet":SetPoint("RIGHT", oUF.units.player, "LEFT", -10, 0)
+oUF:Factory(function(self)
+	self:SetActiveStyle"Freeb"
 
-if bossframes then
-	local boss = {}
-	for i = 1, MAX_BOSS_FRAMES do
-		local unit = oUF:Spawn("boss"..i)
+	self:Spawn"player":SetPoint("CENTER", -234, -192)
+	self:Spawn"target":SetPoint("CENTER", 234, -192)
+	self:Spawn"targettarget":SetPoint("CENTER", 0, -192)
+	self:Spawn"focus":SetPoint("CENTER", 500, 0)
+	self:Spawn"focustarget":SetPoint("RIGHT", self.units.focus, "LEFT", -10, 0)
+	self:Spawn"pet":SetPoint("RIGHT", self.units.player, "LEFT", -10, 0)
 
-		if i==1 then
-			unit:SetPoint("CENTER", 500, 200)
-		else
-			unit:SetPoint("TOPLEFT", boss[i-1], "BOTTOMLEFT", 0, -10)
+	if bossframes then
+		local boss = {}
+		for i = 1, MAX_BOSS_FRAMES do
+			local unit = self:Spawn("boss"..i)
+
+			if i==1 then
+				unit:SetPoint("CENTER", 500, 200)
+			else
+				unit:SetPoint("TOPLEFT", boss[i-1], "BOTTOMLEFT", 0, -10)
+			end
+			boss[i] = unit
 		end
-		boss[i] = unit
 	end
-end
+end)
