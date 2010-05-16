@@ -184,6 +184,7 @@ end
 
 local fixStatusbar = function(bar)
 	bar:GetStatusBarTexture():SetHorizTile(false)
+	bar:GetStatusBarTexture():SetVertTile(false)
 end
 
 local PostCastStart = function(castbar)
@@ -796,7 +797,7 @@ oUF:Factory(function(self)
 	if bossframes then
 		local boss = {}
 		for i = 1, MAX_BOSS_FRAMES do
-			local unit = self:Spawn("oUF_FreebBoss"..i)
+			local unit = self:Spawn("boss"..i, "oUF_FreebBoss"..i)
 
 			if i==1 then
 				unit:SetPoint("CENTER", 500, 200)
