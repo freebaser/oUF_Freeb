@@ -3,6 +3,7 @@ local texture = mediaPath.."Cabaret"
 local glowTex = mediaPath.."glowTex"
 local font, fontsize = mediaPath.."myriad.ttf", 12
 local height, width = 28, 28
+local scale = 1.0
 
 local backdrop = {
 	bgFile = [=[Interface\ChatFrame\ChatFrameBackground]=],
@@ -90,12 +91,14 @@ local func = function(self, unit)
 	self:RegisterEvent("RAID_TARGET_UPDATE", updateRIcon)
 	table.insert(self.__elements, updateRIcon)
 
-	self.Range = true
-	self.inRangeAlpha = 1
-	self.outsideRangeAlpha = .3
+	self.Range = {
+		insideAlpha = 1,
+		outsideAlpha = .3,
+	}
 	
 	self:SetAttribute('initial-height', height)
 	self:SetAttribute('initial-width', width)
+	self:SetAttribute('initial-scale', scale)
 end
 
 oUF:RegisterStyle("Freebraid", func)

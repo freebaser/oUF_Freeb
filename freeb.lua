@@ -6,7 +6,7 @@ local buttonTex = mediaPath.."buttontex"
 local height, width = 22, 220
 local scale = 1.0
 
-local overrideBlizzbuffs = true 
+local overrideBlizzbuffs = false
 local castbars = true	-- disable castbars
 local auras = true	-- disable all auras
 local healtext = false -- Healcomm support
@@ -43,15 +43,6 @@ local menu = function(self)
 		ToggleDropDownMenu(1, nil, _G["PartyMemberFrame"..self.id.."DropDown"], "cursor", 0, 0)
 	elseif(_G[cunit.."FrameDropDown"]) then
 		ToggleDropDownMenu(1, nil, _G[cunit.."FrameDropDown"], "cursor", 0, 0)
-	end
-end
-
-local updateRIcon = function(self, event)
-	local index = GetRaidTargetIndex(self.unit)
-	if(index) then
-		self.RIcon:SetText(ICON_LIST[index].."22|t")
-	else
-		self.RIcon:SetText()
 	end
 end
 
@@ -216,6 +207,7 @@ local castbar = function(self, unit)
 		
 		cb.Spark = cb:CreateTexture(nil, "OVERLAY")
 		cb.Spark:SetBlendMode("ADD")
+		cb.Spark:SetAlpha(0.5)
 		cb.Spark:SetHeight(48)
 		
 		local cbbg = cb:CreateTexture(nil, "BACKGROUND")
@@ -500,23 +492,20 @@ local UnitSpecific = {
 		cpoints:SetTextColor(1, 0, 0)
 		self:Tag(cpoints, '[cpoints]')
 
-		self.CPoints = CreateFrame("Frame", nil, self)
+		local CPoints = {}
 		for index = 1, MAX_COMBO_POINTS do
-			local CPoint = self:CreateTexture(nil, 'OVERLAY')
-			CPoint:SetSize(10, 10)
+			local CPoint = self:CreateTexture(nil, 'BACKGROUND')
+			CPoint:SetSize(12, 16)
 			CPoint:SetVertexColor(1,1,0)
 
-			if(index == 1) then
-				CPoint:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', 0, -2)
-			else
-				CPoint:SetPoint('RIGHT', self.CPoints[index - 1], 'LEFT')
-			end
+			CPoint:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', -(index) * CPoint:GetWidth(), 0)
 			
 			if(index == 4) then CPoint:SetVertexColor(1,.6,0) end
 			if(index == 5) then CPoint:SetVertexColor(1,0,0) end
 			
-			self.CPoints[index] = CPoint
+			CPoints[index] = CPoint
 		end
+		self.CPoints = CPoints
 	end,
 
 	focus = function(self)
@@ -612,7 +601,7 @@ local func = function(self, unit)
 	if(unit and (unit == "targettarget")) then
 		hp:SetHeight(height)
 	else
-		hp:SetHeight(height*.88)
+		hp:SetHeight(height*.89)
 	end
 	hp:SetStatusBarTexture(texture)
 	fixStatusbar(hp)
@@ -651,7 +640,7 @@ local func = function(self, unit)
 
 	if not (unit == "targettarget") then
 		local pp = CreateFrame"StatusBar"
-		pp:SetHeight(height*.07)
+		pp:SetHeight(height*.06)
 		pp:SetStatusBarTexture(texture)
 		fixStatusbar(pp)
 		pp:SetStatusBarColor(1, 1, 1)
@@ -753,14 +742,11 @@ local func = function(self, unit)
 			end
 		end
 	end
-
-	local ricon = hp:CreateFontString(nil, "OVERLAY")
-	ricon:SetPoint("BOTTOM", hp, "TOP", 0 , -7)
-	ricon:SetFont(font, 14)
-	ricon:SetTextColor(1, 1, 1)
-	self.RIcon = ricon
-	self:RegisterEvent("RAID_TARGET_UPDATE", updateRIcon)
-	table.insert(self.__elements, updateRIcon)
+	
+	local ricon = hp:CreateTexture(nil, 'OVERLAY')
+	ricon:SetPoint("BOTTOM", hp, "TOP", 0, -7)
+	ricon:SetSize(14, 14)
+	self.RaidIcon = ricon
 
 	if castbars then
 		castbar(self, unit)
