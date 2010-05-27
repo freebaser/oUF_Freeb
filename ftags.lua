@@ -73,7 +73,7 @@ oUF.Tags['freeb:color'] = function(u, r)
 	
 	if (UnitIsTapped(u) and not UnitIsTappedByPlayer(u)) then
 		return hex(oUF.colors.tapped)
-	elseif (UnitClass("player") == 'HUNTER') and (u == "pet") then
+	elseif (u == "pet") and GetPetHappiness() then
 		return hex(oUF.colors.happiness[GetPetHappiness()])
 	elseif (UnitIsPlayer(u)) then
 		return hex(oUF.colors.class[class])
