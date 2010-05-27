@@ -61,7 +61,9 @@ oUF.TagEvents['freeb:hp'] = 'UNIT_HEALTH'
 
 oUF.Tags['freeb:pp'] = function(u)
 	local _, str = UnitPowerType(u)
-	return hex(colors.power[str])..siValue(UnitPower(u))
+	if str then
+		return hex(colors.power[str])..siValue(UnitPower(u))
+	end
 end
 oUF.TagEvents['freeb:pp'] = 'UNIT_ENERGY UNIT_FOCUS UNIT_MANA UNIT_RAGE UNIT_RUNIC_POWER'
 
@@ -85,7 +87,6 @@ oUF.TagEvents['freeb:color'] = 'UNIT_REACTION UNIT_HEALTH UNIT_HAPPINESS'
 
 oUF.Tags['freeb:name'] = function(u, r)
 	local name = string.upper(UnitName(r or u))
-
 	return name
 end
 oUF.TagEvents['freeb:name'] = 'UNIT_NAME_UPDATE'
@@ -106,14 +107,16 @@ oUF.TagEvents['freeb:info'] = 'UNIT_HEALTH'
 oUF.Tags['freebraid:info'] = function(u)
 	local _, class = UnitClass(u)
 
-	if UnitIsDead(u) then
-		return hex(oUF.colors.class[class]).."RIP|r"
-	elseif UnitIsGhost(u) then
-		return hex(oUF.colors.class[class]).."Gho|r"
-	elseif not UnitIsConnected(u) then
-		return hex(oUF.colors.class[class]).."D/C|r"
-	else
-		return " "
+	if class then
+		if UnitIsDead(u) then
+			return hex(oUF.colors.class[class]).."RIP|r"
+		elseif UnitIsGhost(u) then
+			return hex(oUF.colors.class[class]).."Gho|r"
+		elseif not UnitIsConnected(u) then
+			return hex(oUF.colors.class[class]).."D/C|r"
+		else
+			return " "
+		end
 	end
 end
 oUF.TagEvents['freebraid:info'] = 'UNIT_HEALTH'
