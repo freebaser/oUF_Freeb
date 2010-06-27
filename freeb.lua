@@ -492,7 +492,7 @@ local UnitSpecific = {
 		cpoints:SetTextColor(1, 0, 0)
 		self:Tag(cpoints, '[cpoints]')
 
-		local CPoints = {}
+		--[[local CPoints = {}
 		for index = 1, MAX_COMBO_POINTS do
 			local CPoint = self:CreateTexture(nil, 'BACKGROUND')
 			CPoint:SetSize(12, 16)
@@ -505,7 +505,7 @@ local UnitSpecific = {
 			
 			CPoints[index] = CPoint
 		end
-		self.CPoints = CPoints
+		self.CPoints = CPoints]]
 	end,
 
 	focus = function(self)
