@@ -93,6 +93,9 @@ local auraIcon = function(auras, button)
 	local count = button.count
 	count:ClearAllPoints()
 	count:SetPoint("BOTTOMRIGHT", 3, -3)
+	count:SetFontObject(nil)
+	count:SetFont(font, 12, "OUTLINE")
+	count:SetTextColor(.8, .8, .8)
 	
 	auras.disableCooldown = true
 
@@ -295,37 +298,43 @@ local UnitSpecific = {
 		ppp:SetShadowOffset(1, -1)
 		ppp:SetTextColor(1, 1, 1)
 		self:Tag(ppp, '[freeb:pp]')
-			
-		local runes = CreateFrame("Frame", nil, self)
-		runes:SetHeight(16)
-		runes:SetWidth(150)
-		runes.spacing = 5
-		runes.anchor = "TOPLEFT"
-		runes.growth = "RIGHT"
-		runes.height = 16
-		runes.width = 150 / 6 - 5
-		runes.order = { 1, 2, 3, 4, 5, 6 }
-		runes:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -33)
-
-		for i = 1, 6 do
-			local bar = CreateFrame("Statusbar", nil, runes)
-			bar:SetStatusBarTexture(texture)
-			fixStatusbar(bar)
-			bar:SetBackdrop(backdrop)
-			bar:SetBackdropColor(.05, .05, .05, 1)
-			bar:SetFrameLevel(2)
-			bar.bd = CreateFrame("Frame", nil, bar)
-			bar.bd:SetPoint("TOPLEFT", bar, "TOPLEFT", -4, 4)
-			bar.bd:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", 4, -4)
-			bar.bd:SetFrameStrata("LOW")
-			bar.bd:SetBackdrop(frameBD)
-			bar.bd:SetBackdropColor(0, 0, 0, 0)
-			bar.bd:SetBackdropBorderColor(0, 0, 0)
-			runes[i] = bar
-		end
-		self.Runes = runes
 		
 		local _, class = UnitClass("player")
+		if class == "DEATHKNIGHT" then
+			self.Runes = CreateFrame("Frame", nil, self)
+			self.Runes:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -33)
+			self.Runes:SetSize(150/6 - 5, 16)
+			self.Runes.anchor = "TOPLEFT"
+			self.Runes.growth = "RIGHT"
+			self.Runes.height = 16
+			self.Runes.width = 20
+				
+			for i = 1, 6 do
+				self.Runes[i] = CreateFrame("StatusBar", nil, self.Runes)
+				self.Runes[i]:SetStatusBarTexture(texture)
+				self.Runes[i]:SetSize(150/6 - 5, 16)
+	
+				if i == 1 then
+					self.Runes[i]:SetPoint("TOPLEFT", self.Runes, "TOPLEFT")
+				else
+					self.Runes[i]:SetPoint("RIGHT", self.Runes[i - 1], "LEFT", -5, 0)
+				end
+				
+				self.Runes[i].bg = self.Runes[i]:CreateTexture(nil, "BACKGROUND")
+				self.Runes[i].bg:SetAllPoints(self.Runes[i])
+				self.Runes[i].bg:SetTexture(texture)
+				self.Runes[i].bg.multiplier = .2
+				
+				self.Runes[i].bd = CreateFrame("Frame", nil, self.Runes[i])
+				self.Runes[i].bd:SetPoint("TOPLEFT", self.Runes[i], "TOPLEFT", -4, 4)
+				self.Runes[i].bd:SetPoint("BOTTOMRIGHT", self.Runes[i], "BOTTOMRIGHT", 4, -4)
+				self.Runes[i].bd:SetFrameStrata("LOW")
+				self.Runes[i].bd:SetBackdrop(frameBD)
+				self.Runes[i].bd:SetBackdropColor(0, 0, 0, 0)
+				self.Runes[i].bd:SetBackdropBorderColor(0, 0, 0)
+			end
+		end
+		
 		if IsAddOnLoaded("oUF_TotemBar") and class == "SHAMAN" then
 			self.TotemBar = {}
 			self.TotemBar.Destroy = true
