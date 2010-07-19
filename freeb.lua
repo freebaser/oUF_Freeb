@@ -138,7 +138,7 @@ do
 		local name, _, _, _, dtype, duration, expirationTime, unitCaster = UnitAura(unit, index, icon.filter)
 		
 		local texture = icon.icon
-		if playerUnits[icon.owner] or debuffFilter[name] or not UnitIsFriend('player', unit) and not icon.debuff or UnitIsFriend('player', unit) and icon.debuff then
+		if playerUnits[icon.owner] or debuffFilter[name] then
 			texture:SetDesaturated(false)
 		else
 			texture:SetDesaturated(true)
@@ -154,6 +154,26 @@ do
 		icon.timeLeft = expirationTime
 		icon.first = true
 		icon:SetScript("OnUpdate", CreateAuraTimer)
+	end
+end
+
+local CustomFilter = function(icons, ...)
+	local _, icon, name, _, _, _, _, _, _, caster = ...
+
+	if name == "Chill of the Throne" then
+		return false
+	end
+	
+	local isPlayer
+
+	if(caster == 'player' or caster == 'vehicle') then
+		isPlayer = true
+	end
+
+	if((icons.onlyShowPlayer and isPlayer) or (not icons.onlyShowPlayer and name)) then
+		icon.isPlayer = isPlayer
+		icon.owner = caster
+		return true
 	end
 end
 
@@ -441,6 +461,7 @@ local UnitSpecific = {
 			
 			debuffs.PostCreateIcon = auraIcon
 			debuffs.PostUpdateIcon = PostUpdateIcon
+			debuffs.CustomFilter = CustomFilter
 
 			self.Debuffs = debuffs
 			self.Debuffs.num = 5 
@@ -489,6 +510,7 @@ local UnitSpecific = {
 			
 			debuffs.PostCreateIcon = auraIcon
 			debuffs.PostUpdateIcon = PostUpdateIcon
+			debuffs.CustomFilter = CustomFilter
 		
 			self.Debuffs = debuffs
 			self.Debuffs.num = 32
@@ -579,6 +601,7 @@ local UnitSpecific = {
 			
 			debuffs.PostCreateIcon = auraIcon
 			debuffs.PostUpdateIcon = PostUpdateIcon
+			debuffs.CustomFilter = CustomFilter
 
 			self.Debuffs = debuffs
 			self.Debuffs.num = 5 
