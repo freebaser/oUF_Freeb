@@ -138,7 +138,7 @@ do
 		local name, _, _, _, dtype, duration, expirationTime, unitCaster = UnitAura(unit, index, icon.filter)
 		
 		local texture = icon.icon
-		if playerUnits[icon.owner] or debuffFilter[name] then
+		if playerUnits[icon.owner] or debuffFilter[name] or UnitIsFriend('player', unit) or not icon.debuff then
 			texture:SetDesaturated(false)
 		else
 			texture:SetDesaturated(true)
