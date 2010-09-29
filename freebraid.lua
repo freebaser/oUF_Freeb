@@ -1,3 +1,6 @@
+local enable = true
+if not enable then return end
+
 local mediaPath = "Interface\\AddOns\\oUF_Freeb\\media\\"
 local texture = mediaPath.."Cabaret"
 local glowTex = mediaPath.."glowTex"

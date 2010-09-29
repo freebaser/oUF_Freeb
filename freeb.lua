@@ -9,12 +9,13 @@ local scale = 1.0
 local overrideBlizzbuffs = false
 local castbars = true   -- disable castbars
 local auras = true  -- disable all auras
-local healtext = false -- Healcomm support
-local healbar = false   -- Healcomm support
 local bossframes = true
 local auraborders = false
 local classColorbars = false
 local portraits = true
+local onlyShowPlayer = false -- only show player debuffs on target
+
+local CC = select(4, GetBuildInfo()) == 4e4
 
 if overrideBlizzbuffs then
    BuffFrame:Hide()
@@ -359,11 +360,17 @@ local UnitSpecific = {
 		  if class == "DEATHKNIGHT" then
 		     bars[3], bars[4], bars[5], bars[6] = bars[5], bars[6], bars[3], bars[4]
 		     self.Runes = bars
-		  elseif class == "WARLOCK" then
+		  elseif class == "WARLOCK" and CC then
 		     self.SoulShards = bars
-		  elseif class == "PALADIN" then
+		  elseif class == "PALADIN" and CC then
 		     self.HolyPower = bars
 		  end
+	       end
+	       
+	       if class == "DRUID" and CC then
+		  EclipseBarFrame:ClearAllPoints()
+		  EclipseBarFrame:SetParent(self)
+		  EclipseBarFrame:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -30)
 	       end
 	       
 	       if IsAddOnLoaded("oUF_TotemBar") and class == "SHAMAN" then
@@ -491,6 +498,7 @@ local UnitSpecific = {
 		  debuffs.spacing = 4
 		  debuffs.size = height+2
 		  debuffs.initialAnchor = "BOTTOMLEFT"
+		  debuffs.onlyShowPlayer = onlyShowPlayer
 		  
 		  debuffs.PostCreateIcon = auraIcon
 		  debuffs.PostUpdateIcon = PostUpdateIcon
@@ -633,19 +641,6 @@ local func = function(self, unit)
 
 		   pp.bg = ppbg
 		   self.Power = pp
-		end
-
-		if healtext then
-		   local heal = createFont(hp, "OVERLAY", font, fontsize, nil, 0, 1, 0, "CENTER")
-		   heal:SetPoint("CENTER")
-
-		   self.HealCommText = heal
-		end
-
-		if healbar then
-		   self.HealCommBar = createStatusbar(hp, texture, nil, 0, 0, 0, 1, 0, .4)
-		   self.HealCommBar:SetPoint('LEFT', hp, 'LEFT')
-		   self.allowHealCommOverflow = true
 		end
 
 		local leader = hp:CreateTexture(nil, "OVERLAY")
