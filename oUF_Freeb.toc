@@ -1,7 +1,7 @@
 ## Interface: 30300
 ## Title: oUF_Freeb
 ## Author: Freebaser
-## Version: 3.1
+## Version: 4.0
 ## Notes: oUF layout.
 ## Dependencies: oUF
 ## OptionalDeps: oUF_Experience, oUF_Totembar, oUF_WeaponEnchant
