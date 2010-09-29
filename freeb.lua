@@ -318,13 +318,20 @@ local UnitSpecific = {
 
 	       local ppp = createFont(self.Health, "OVERLAY", font, fontsize, nil, 1, 1, 1)
 	       ppp:SetPoint("LEFT", 2, 0)
+	       ppp.frequentUpdates = true
 	       self:Tag(ppp, '[freeb:pp]')
 	       
 	       local _, class = UnitClass("player")
 	       -- Runes, Shards, HolyPower
 	       if multicheck(class, "DEATHKNIGHT", "WARLOCK", "PALADIN") then
 		  local count
-		  if class == "DEATHKNIGHT" then count = 6 else count = 3 end
+		  if class == "DEATHKNIGHT" then 
+		     count = 6 
+		  elseif not CC then
+		     return
+		  else 
+		     count = 3 
+		  end
 
 		  local bars = CreateFrame("Frame", nil, self)
 		  bars:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -33)
@@ -334,10 +341,10 @@ local UnitSpecific = {
 		  for index = 1, count do
 		     bars[i] = createStatusbar(bars, texture, nil, 16, 150/count-5, 1, 1, 1, 1)
 
-		     if class == "WARLOCK" then
+		     if class == "WARLOCK" and CC then
 			local color = self.colors.power["SOUL_SHARDS"]
 			bars[i]:SetStatusBarColor(color[1], color[2], color[3])
-		     elseif class == "PALADIN" then
+		     elseif class == "PALADIN" and CC then
 			local color = self.colors.power["HOLY_POWER"]
 			bars[i]:SetStatusBarColor(color[1], color[2], color[3])
 		     end 

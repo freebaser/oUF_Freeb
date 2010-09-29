@@ -1,3 +1,4 @@
+local CC = select(4, GetBuildInfo()) == 4e4
 local siValue = function(val)
 		   if(val >= 1e6) then
 		      return ('%.1f'):format(val / 1e6):gsub('%.', 'm')
@@ -51,7 +52,11 @@ oUF.Tags['freeb:pp'] = function(u)
 			     return hex(oUF.colors.power[str])..siValue(UnitPower(u))
 			  end
 		       end
-oUF.TagEvents['freeb:pp'] = 'UNIT_POWER'
+if CC then
+   oUF.TagEvents['freeb:pp'] = 'UNIT_POWER'
+else
+   oUF.TagEvents['freeb:pp'] = 'UNIT_ENERGY UNIT_FOCUS UNIT_MANA UNIT_RAGE UNIT_RUNIC_POWER'
+end
 
 oUF.Tags['freeb:color'] = function(u, r)
 			     local _, class = UnitClass(u)
