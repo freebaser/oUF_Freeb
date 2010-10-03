@@ -22,6 +22,13 @@ if overrideBlizzbuffs then
     TemporaryEnchantFrame:Hide()
 end
 
+local function multicheck(check, ...)
+    for i=1, select('#', ...) do
+        if check == select(i, ...) then return true end
+    end
+    return false
+end
+
 local backdrop = {
     bgFile = [=[Interface\ChatFrame\ChatFrameBackground]=],
     insets = {top = 0, left = 0, bottom = 0, right = 0},
@@ -92,13 +99,6 @@ local createFont = function(parent, layer, font, fontsiz, outline, r, g, b, just
     return string
 end
 
-local function multicheck(check, ...)
-    for i=1, select('#', ...) do
-        if check == select(i, ...) then return true end
-    end
-    return false
-end
-
 local FormatTime = function(s)
     local day, hour, minute = 86400, 3600, 60
     if s >= day then
@@ -134,7 +134,7 @@ local CreateAuraTimer = function(self,elapsed)
 end
 
 local debuffFilter = {
-
+    --Update this
 }
 
 local auraIcon = function(auras, button)
@@ -197,16 +197,20 @@ do
     end
 end
 
+local aurafilter = {
+    ["Chill of the Throne"] = true,
+}
+
 local CustomFilter = function(icons, ...)
     local _, icon, name, _, _, _, _, _, _, caster = ...
 
-    if name == "Chill of the Throne" then
+    if aurafilter[name] then
         return false
     end
 
     local isPlayer
 
-    if(caster == 'player' or caster == 'vehicle') then
+    if multicheck(caster, 'player', 'vechicle') then
         isPlayer = true
     end
 
@@ -253,7 +257,7 @@ local CustomTimeText = function(castbar, duration)
 end
 
 local castbar = function(self, unit)
-    if (unit == "target" or unit == "player" or unit == "focus") then
+    if multicheck(unit, "target", "player", "focus") then
         local cb = createStatusbar(self, texture, "OVERLAY", 16, 150, 1, .25, .35, .5)
         cb:SetToplevel(true)
 
