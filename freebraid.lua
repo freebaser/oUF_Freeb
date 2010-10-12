@@ -1,4 +1,4 @@
-local enable = false
+local enable = true
 if not enable then return end
 
 local mediaPath = "Interface\\AddOns\\oUF_Freeb\\media\\"
@@ -42,7 +42,7 @@ local func = function(self, unit)
     self:SetScript("OnEnter", UnitFrame_OnEnter)
     self:SetScript("OnLeave", UnitFrame_OnLeave)
 
-    self:RegisterForClicks"anyup"
+    self:RegisterForClicks"AnyDown"
     self:SetAttribute("*type2", "menu")
 
     self.FrameBackdrop = CreateFrame("Frame", nil, self)
@@ -86,16 +86,17 @@ local func = function(self, unit)
         insideAlpha = 1,
         outsideAlpha = .3,
     }
-
-    self:SetAttribute('initial-height', height)
-    self:SetAttribute('initial-width', width)
-    self:SetAttribute('initial-scale', scale)
 end
 
 oUF:RegisterStyle("Freebraid", func)
 oUF:SetActiveStyle"Freebraid"
 
 local raid = oUF:SpawnHeader('Raid_Freeb', nil, 'raid,party,solo',
+'oUF-initialConfigFunction', ([[
+    self:SetWidth(%d)
+    self:SetHeight(%d)
+    self:SetScale(%d)
+]]):format(width, height, scale),
 'showPlayer', true,
 'showSolo', true,
 'showParty', true,

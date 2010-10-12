@@ -15,8 +15,6 @@ local classColorbars = false
 local portraits = true
 local onlyShowPlayer = false -- only show player debuffs on target
 
-local CC = select(4, GetBuildInfo()) == 4e4
-
 if overrideBlizzbuffs then
     BuffFrame:Hide()
     TemporaryEnchantFrame:Hide()
@@ -36,6 +34,7 @@ local backdrop = {
 
 local frameBD = {
     edgeFile = glowTex, edgeSize = 5,
+    bgFile = [=[Interface\ChatFrame\ChatFrameBackground]=],
     insets = {left = 3, right = 3, top = 3, bottom = 3}
 }
 
@@ -60,7 +59,7 @@ local createBackdrop = function(parent, anchor)
     frame:SetPoint("BOTTOMRIGHT", anchor, "BOTTOMRIGHT", 4, -4)
     frame:SetFrameStrata("LOW")
     frame:SetBackdrop(frameBD)
-    frame:SetBackdropColor(0, 0, 0, 0)
+    frame:SetBackdropColor(.05, .05, .05, 1)
     frame:SetBackdropBorderColor(0, 0, 0)
 
     return frame
@@ -331,8 +330,6 @@ local UnitSpecific = {
             local count
             if class == "DEATHKNIGHT" then 
                 count = 6 
-            elseif not CC then
-                return
             else 
                 count = 3 
             end
@@ -345,10 +342,10 @@ local UnitSpecific = {
             for index = 1, count do
                 bars[i] = createStatusbar(bars, texture, nil, 16, 150/count-5, 1, 1, 1, 1)
 
-                if class == "WARLOCK" and CC then
+                if class == "WARLOCK" then
                     local color = self.colors.power["SOUL_SHARDS"]
                     bars[i]:SetStatusBarColor(color[1], color[2], color[3])
-                elseif class == "PALADIN" and CC then
+                elseif class == "PALADIN" then
                     local color = self.colors.power["HOLY_POWER"]
                     bars[i]:SetStatusBarColor(color[1], color[2], color[3])
                 end 
@@ -371,14 +368,14 @@ local UnitSpecific = {
             if class == "DEATHKNIGHT" then
                 bars[3], bars[4], bars[5], bars[6] = bars[5], bars[6], bars[3], bars[4]
                 self.Runes = bars
-            elseif class == "WARLOCK" and CC then
+            elseif class == "WARLOCK" then
                 self.SoulShards = bars
-            elseif class == "PALADIN" and CC then
+            elseif class == "PALADIN" then
                 self.HolyPower = bars
             end
         end
 
-        if class == "DRUID" and CC then
+        if class == "DRUID" then
             EclipseBarFrame:ClearAllPoints()
             EclipseBarFrame:SetParent(self)
             EclipseBarFrame:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -30)
@@ -597,7 +594,7 @@ local func = function(self, unit)
     self:SetScript("OnEnter", UnitFrame_OnEnter)
     self:SetScript("OnLeave", UnitFrame_OnLeave)
 
-    self:RegisterForClicks"anyup"
+    self:RegisterForClicks"AnyDown"
     self:SetAttribute("*type2", "menu")
 
     self.FrameBackdrop = createBackdrop(self, self)
@@ -719,16 +716,12 @@ local func = function(self, unit)
         castbar(self, unit)
     end
 
-    self:SetAttribute('initial-height', height)
+    self:SetSize(width, height)
     if(unit and (unit == "targettarget")) then
-        self:SetAttribute('initial-width', 150)
-    else
-        self:SetAttribute('initial-width', width)
+        self:SetSize(150, height)
     end
 
-    self.disallowVehicleSwap = true
-
-    self:SetAttribute('initial-scale', scale)
+    self:SetScale(scale)
 
     if(UnitSpecific[unit]) then
         return UnitSpecific[unit](self)

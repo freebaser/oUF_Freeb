@@ -1,4 +1,4 @@
-## Interface: 30300
+## Interface: 40000
 ## Title: oUF_Freeb
 ## Author: Freebaser
 ## Version: 4.0
