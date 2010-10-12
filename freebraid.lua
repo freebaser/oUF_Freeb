@@ -1,4 +1,4 @@
-local enable = true
+local enable = false
 if not enable then return end
 
 local mediaPath = "Interface\\AddOns\\oUF_Freeb\\media\\"
