@@ -112,4 +112,4 @@ local raid = oUF:SpawnHeader('Raid_Freeb', nil, 'raid,party,solo',
 'columnSpacing', 5,
 'columnAnchorPoint', "TOP"
 )
-raid:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 5, -20)
+raid:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 5, -25)

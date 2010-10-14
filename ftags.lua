@@ -73,7 +73,7 @@ end
 oUF.TagEvents['freeb:color'] = 'UNIT_REACTION UNIT_HEALTH UNIT_HAPPINESS'
 
 oUF.Tags['freeb:name'] = function(u, r)
-    local name = string.upper(UnitName(r or u))
+    local name = UnitName(r or u)
     return name
 end
 oUF.TagEvents['freeb:name'] = 'UNIT_NAME_UPDATE'

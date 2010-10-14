@@ -412,7 +412,7 @@ local UnitSpecific = {
 
             self.Experience.Tooltip = true
 
-            self.Experience.Rested = createStatusbar(self, texture, nil, nil, nil, 0, .4, 1, .6)
+            self.Experience.Rested = createStatusbar(self.Experience, texture, nil, nil, nil, 0, .4, 1, .6)
             self.Experience.Rested:SetAllPoints(self.Experience)
             self.Experience.Rested:SetBackdrop(backdrop)
             self.Experience.Rested:SetBackdropColor(0, 0, 0)
