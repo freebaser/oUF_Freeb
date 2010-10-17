@@ -1,17 +1,23 @@
 local mediaPath = "Interface\\AddOns\\oUF_Freeb\\media\\"
 local texture = mediaPath.."Cabaret"
-local font, fontsize = mediaPath.."myriad.ttf", 12
+local font, fontsize, fontflag = mediaPath.."myriad.ttf", 12, "THINOUTLINE" -- "" for none
+
 local glowTex = mediaPath.."glowTex"
 local buttonTex = mediaPath.."buttontex"
 local height, width = 22, 220
 local scale = 1.0
+local hpheight = .85 -- .70 - .90 
 
 local overrideBlizzbuffs = false
 local castbars = true   -- disable castbars
 local auras = true  -- disable all auras
 local bossframes = true
 local auraborders = false
+
 local classColorbars = false
+local powerColor = false 
+local powerClass = false 
+
 local portraits = true
 local onlyShowPlayer = false -- only show player debuffs on target
 
@@ -220,25 +226,6 @@ local CustomFilter = function(icons, ...)
     end
 end
 
-local updateHealth = function(health, unit)
-    local r, g, b, t
-    local reaction = UnitReaction(unit, "player")
-    if(UnitIsPlayer(unit)) then
-        local _, class = UnitClass(unit)
-        t = oUF.colors.class[class]
-    elseif reaction then
-        t = oUF.colors.reaction[reaction]
-    else
-        r, g, b = .1, .8, .3
-    end
-
-    if(t) then
-        r, g, b = t[1], t[2], t[3]
-    end
-
-    health:SetStatusBarColor(r, g, b)
-end
-
 local PostCastStart = function(castbar)
     if castbar.interrupt then
         castbar.Backdrop:SetBackdropBorderColor(1, .9, .4)
@@ -270,11 +257,11 @@ local castbar = function(self, unit)
         cbbg:SetTexture(texture)
         cbbg:SetVertexColor(.1,.1,.1)
 
-        cb.Time = createFont(cb, "OVERLAY", font, fontsize, nil, 1, 1, 1)
+        cb.Time = createFont(cb, "OVERLAY", font, fontsize, fontflag, 1, 1, 1)
         cb.Time:SetPoint("RIGHT", cb, -2, 0)
         cb.CustomTimeText = CustomTimeText
 
-        cb.Text = createFont(cb, "OVERLAY", font, fontsize, nil, 1, 1, 1, "LEFT")
+        cb.Text = createFont(cb, "OVERLAY", font, fontsize, fontflag, 1, 1, 1, "LEFT")
         cb.Text:SetPoint("LEFT", cb, 2, 0)
         cb.Text:SetPoint("RIGHT", cb.Time, "LEFT")
 
@@ -319,7 +306,7 @@ local UnitSpecific = {
             self.PorBackdrop = createBackdrop(self, self.Portrait)
         end
 
-        local ppp = createFont(self.Health, "OVERLAY", font, fontsize, nil, 1, 1, 1)
+        local ppp = createFont(self.Health, "OVERLAY", font, fontsize, fontflag, 1, 1, 1)
         ppp:SetPoint("LEFT", 2, 0)
         ppp.frequentUpdates = true
         self:Tag(ppp, '[freeb:pp]')
@@ -607,7 +594,7 @@ local func = function(self, unit)
     if(unit and (unit == "targettarget")) then
         hp:SetHeight(height)
     else
-        hp:SetHeight(height*.89)
+        hp:SetHeight(height*hpheight)
     end
 
     hp.frequentUpdates = true
@@ -618,14 +605,15 @@ local func = function(self, unit)
     hpbg:SetTexture(texture)
 
     if classColorbars then
-        hp.PostUpdate = updateHealth
+        hp.colorClass = true
+        hp.colorReaction = true
         hpbg:SetVertexColor(.15,.15,.15)
     else
         hpbg:SetVertexColor(.3,.3,.3)
     end
 
     if not (unit == "targettarget") then
-        local hpp = createFont(hp, "OVERLAY", font, fontsize, nil, 1, 1, 1)
+        local hpp = createFont(hp, "OVERLAY", font, fontsize, fontflag, 1, 1, 1)
         hpp:SetPoint("RIGHT", hp, -2, 0)
         self:Tag(hpp, '[freeb:hp]')
     end
@@ -634,7 +622,7 @@ local func = function(self, unit)
     self.Health = hp
 
     if not (unit == "targettarget") then
-        local pp = createStatusbar(self, texture, nil, height*.06, nil, 1, 1, 1, 1)
+        local pp = createStatusbar(self, texture, nil, height*-(hpheight-.95), nil, 1, 1, 1, 1)
         pp:SetPoint"LEFT"
         pp:SetPoint"RIGHT"
         pp:SetPoint"BOTTOM" 
@@ -646,6 +634,12 @@ local func = function(self, unit)
         ppbg:SetAllPoints(pp)
         ppbg:SetTexture(texture)
         ppbg:SetVertexColor(.3,.3,.3)
+
+        if powerColor then
+            pp.colorPower = true
+        elseif powerClass then
+            pp.colorClass = true
+        end
 
         pp.bg = ppbg
         self.Power = pp
@@ -682,7 +676,7 @@ local func = function(self, unit)
     self.Resting = Resting
 
     if not (unit == "player") then
-        local name = createFont(hp, "OVERLAY", font, fontsize, nil, 1, 1, 1)
+        local name = createFont(hp, "OVERLAY", font, fontsize, fontflag, 1, 1, 1)
         if(unit == "targettarget") then
             name:SetPoint("LEFT", hp)
             name:SetPoint("RIGHT", hp)
@@ -709,7 +703,7 @@ local func = function(self, unit)
 
     local ricon = hp:CreateTexture(nil, 'OVERLAY')
     ricon:SetPoint("BOTTOM", hp, "TOP", 0, -7)
-    ricon:SetSize(14, 14)
+    ricon:SetSize(16, 16)
     self.RaidIcon = ricon
 
     if castbars then

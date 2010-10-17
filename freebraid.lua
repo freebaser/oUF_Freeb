@@ -18,23 +18,6 @@ local frameBD = {
     insets = {left = 3, right = 3, top = 3, bottom = 3}
 }
 
-local updateHealth = function(health, unit)
-    local r, g, b, t
-    if(UnitIsPlayer(unit)) then
-        local _, class = UnitClass(unit)
-        t = oUF.colors.class[class]
-    else        
-        r, g, b = .1, .8, .3
-    end
-
-    if(t) then
-        r, g, b = t[1], t[2], t[3]
-    end
-
-    health:SetStatusBarColor(r, g, b)
-end
-
-
 local func = function(self, unit)
     self:SetBackdrop(backdrop)
     self:SetBackdropColor(0, 0, 0)
@@ -58,6 +41,8 @@ local func = function(self, unit)
     hp:SetStatusBarTexture(texture)
     hp.frequentUpdates = true
     hp.Smooth = true
+    hp.colorClass = true
+    hp.colorReaction = true
 
     local hpbg = hp:CreateTexture(nil, "BACKGROUND")
     hpbg:SetAllPoints(hp)
@@ -93,9 +78,9 @@ oUF:SetActiveStyle"Freebraid"
 
 local raid = oUF:SpawnHeader('Raid_Freeb', nil, 'raid,party,solo',
 'oUF-initialConfigFunction', ([[
-    self:SetWidth(%d)
-    self:SetHeight(%d)
-    self:SetScale(%d)
+self:SetWidth(%d)
+self:SetHeight(%d)
+self:SetScale(%d)
 ]]):format(width, height, scale),
 'showPlayer', true,
 'showSolo', true,
