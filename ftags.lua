@@ -105,3 +105,19 @@ oUF.Tags['freebraid:info'] = function(u)
     end
 end
 oUF.TagEvents['freebraid:info'] = 'UNIT_HEALTH'
+
+oUF.Tags['freeb:curxp'] = function(unit)
+    return siValue(UnitXP(unit))
+end
+
+oUF.Tags['freeb:maxxp'] = function(unit)
+    return siValue(UnitXPMax(unit))
+end
+
+oUF.Tags['freeb:perxp'] = function(unit)
+    return math.floor(UnitXP(unit) / UnitXPMax(unit) * 100 + 0.5)
+end
+
+oUF.TagEvents['freeb:curxp'] = 'PLAYER_XP_UPDATE PLAYER_LEVEL_UP'
+oUF.TagEvents['freeb:maxxp'] = 'PLAYER_XP_UPDATE PLAYER_LEVEL_UP'
+oUF.TagEvents['freeb:perxp'] = 'PLAYER_XP_UPDATE PLAYER_LEVEL_UP'

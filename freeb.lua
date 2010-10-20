@@ -16,7 +16,7 @@ local auraborders = false
 
 local classColorbars = false
 local powerColor = false 
-local powerClass = false 
+local powerClass = false
 
 local portraits = true
 local onlyShowPlayer = false -- only show player debuffs on target
@@ -296,7 +296,18 @@ local castbar = function(self, unit)
     end
 end
 
+local OnEnter = function(self)
+    UnitFrame_OnEnter(self)
+    self.Experience.text:Show()	
+end
+
+local OnLeave = function(self)
+    UnitFrame_OnLeave(self)
+    self.Experience.text:Hide()	
+end
+
 local UnitSpecific = {
+
     player = function(self)
         if portraits then
             self.Portrait = CreateFrame("PlayerModel", nil, self)
@@ -397,8 +408,6 @@ local UnitSpecific = {
             self.Experience:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 0, -2)
             self.Experience:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', 0, -2)
 
-            self.Experience.Tooltip = true
-
             self.Experience.Rested = createStatusbar(self.Experience, texture, nil, nil, nil, 0, .4, 1, .6)
             self.Experience.Rested:SetAllPoints(self.Experience)
             self.Experience.Rested:SetBackdrop(backdrop)
@@ -410,6 +419,14 @@ local UnitSpecific = {
             self.Experience.bg:SetVertexColor(.1, .1, .1)
 
             self.Experience.bd = createBackdrop(self.Experience, self.Experience)
+
+            self.Experience.text = createFont(self.Experience, "OVERLAY", font, fontsize, fontflag, 1, 1, 1)
+            self.Experience.text:SetPoint("CENTER")
+            self.Experience.text:Hide()
+            self:Tag(self.Experience.text, '[freeb:curxp] / [freeb:maxxp] - [freeb:perxp]%')
+
+            self:SetScript("OnEnter", OnEnter)
+            self:SetScript("OnLeave", OnLeave)
         end
 
         if overrideBlizzbuffs then
@@ -607,7 +624,7 @@ local func = function(self, unit)
     if classColorbars then
         hp.colorClass = true
         hp.colorReaction = true
-        hpbg:SetVertexColor(.15,.15,.15)
+        hpbg.multiplier = .2
     else
         hpbg:SetVertexColor(.3,.3,.3)
     end
@@ -632,13 +649,16 @@ local func = function(self, unit)
 
         local ppbg = pp:CreateTexture(nil, "BORDER")
         ppbg:SetAllPoints(pp)
-        ppbg:SetTexture(texture)
-        ppbg:SetVertexColor(.3,.3,.3)
+        ppbg:SetTexture(texture) 
 
         if powerColor then
             pp.colorPower = true
+            ppbg.multiplier = .2
         elseif powerClass then
             pp.colorClass = true
+            ppbg.multiplier = .2
+        else
+            ppbg:SetVertexColor(.3,.3,.3)
         end
 
         pp.bg = ppbg
