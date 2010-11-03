@@ -10,6 +10,8 @@ local siValue = function(val)
 end
 
 local function hex(r, g, b)
+    if not r then return "|cffFFFFFF" end
+
     if(type(r) == 'table') then
         if(r.r) then r, g, b = r.r, r.g, r.b else r, g, b = unpack(r) end
     end
@@ -50,6 +52,8 @@ oUF.Tags['freeb:pp'] = function(u)
     local _, str = UnitPowerType(u)
     if str then
         return hex(oUF.colors.power[str])..siValue(UnitPower(u))
+    else
+        return "|cffFFFFFF"..siValue(UnitPower(u)).."|r"
     end
 end
 oUF.TagEvents['freeb:pp'] = 'UNIT_POWER'
