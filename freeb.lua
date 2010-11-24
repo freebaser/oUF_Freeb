@@ -246,8 +246,10 @@ end
 local PostCastStart = function(castbar)
     if castbar.interrupt then
         castbar.Backdrop:SetBackdropBorderColor(1, .9, .4)
+        castbar.Backdrop:SetBackdropColor(1, .9, .4)
     else
         castbar.Backdrop:SetBackdropBorderColor(0, 0, 0)
+        castbar.Backdrop:SetBackdropColor(0, 0, 0)
     end
 end
 
