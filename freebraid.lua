@@ -1,6 +1,8 @@
 local enable = false
 if not enable then return end
 
+local _, ns = ...
+
 local mediaPath = "Interface\\AddOns\\oUF_Freeb\\media\\"
 local texture = mediaPath.."Cabaret"
 local glowTex = mediaPath.."glowTex"
@@ -26,15 +28,8 @@ local func = function(self, unit)
     self:SetScript("OnLeave", UnitFrame_OnLeave)
 
     self:RegisterForClicks"AnyDown"
-    self:SetAttribute("*type2", "menu")
 
-    self.FrameBackdrop = CreateFrame("Frame", nil, self)
-    self.FrameBackdrop:SetPoint("TOPLEFT", self, "TOPLEFT", -4, 4)
-    self.FrameBackdrop:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", 4, -4)
-    self.FrameBackdrop:SetFrameStrata("LOW")
-    self.FrameBackdrop:SetBackdrop(frameBD)
-    self.FrameBackdrop:SetBackdropColor(0, 0, 0, 0)
-    self.FrameBackdrop:SetBackdropBorderColor(0, 0, 0)
+    self.FrameBackdrop = ns.backdrop(self, self)
 
     local hp = CreateFrame("StatusBar", nil, self)
     hp:SetAllPoints(self)
@@ -44,15 +39,12 @@ local func = function(self, unit)
     hp.colorClass = true
     hp.colorReaction = true
 
-    local hpbg = hp:CreateTexture(nil, "BACKGROUND")
+    local hpbg = hp:CreateTexture(nil, "BORDER")
     hpbg:SetAllPoints(hp)
     hpbg:SetTexture(texture)
     hpbg:SetVertexColor(.15,.15,.15)
 
-    hp.bg = hpbg
     self.Health = hp
-
-    hp.PostUpdate = updateHealth
 
     local info = hp:CreateFontString(nil, "OVERLAY")
     info:SetPoint("LEFT", hp)
@@ -62,7 +54,7 @@ local func = function(self, unit)
     info:SetTextColor(1, 1, 1)
     self:Tag(info, '[freebraid:info]')
 
-    local ricon = hp:CreateTexture(nil, "HIGHLIGHT")
+    local ricon = hp:CreateTexture(nil, "OVERLAY")
     ricon:SetPoint("BOTTOM", hp, "TOP", 0 , -10)
     ricon:SetSize(14, 14)
     self.RaidIcon = ricon

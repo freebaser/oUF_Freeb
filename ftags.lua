@@ -108,7 +108,7 @@ oUF.Tags['freebraid:info'] = function(u)
         end
     end
 end
-oUF.TagEvents['freebraid:info'] = 'UNIT_HEALTH'
+oUF.TagEvents['freebraid:info'] = 'UNIT_HEALTH UNIT_CONNECTION'
 
 oUF.Tags['freeb:curxp'] = function(unit)
     return siValue(UnitXP(unit))

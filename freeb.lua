@@ -1,3 +1,5 @@
+local _, ns = ...
+
 local mediaPath = "Interface\\AddOns\\oUF_Freeb\\media\\"
 local texture = mediaPath.."Cabaret"
 local font, fontsize, fontflag = mediaPath.."myriad.ttf", 12, "THINOUTLINE" -- "" for none
@@ -15,11 +17,13 @@ local bossframes = true
 local auraborders = false
 
 local classColorbars = false
-local powerColor = false 
+local powerColor = false
 local powerClass = false
 
 local portraits = true
 local onlyShowPlayer = false -- only show player debuffs on target
+
+local pixelborder = false
 
 if overrideBlizzbuffs then
     BuffFrame:Hide()
@@ -36,6 +40,11 @@ end
 local backdrop = {
     bgFile = [=[Interface\ChatFrame\ChatFrameBackground]=],
     insets = {top = 0, left = 0, bottom = 0, right = 0},
+}
+
+local backdrop2 = {
+    bgFile = [=[Interface\ChatFrame\ChatFrameBackground]=],
+    insets = {top = -1, left = -1, bottom = -1, right = -1},
 }
 
 local frameBD = {
@@ -59,17 +68,25 @@ local menu = function(self)
     end
 end
 
-local createBackdrop = function(parent, anchor)
+local createBackdrop = function(parent, anchor) 
     local frame = CreateFrame("Frame", nil, parent)
-    frame:SetPoint("TOPLEFT", anchor, "TOPLEFT", -4, 4)
-    frame:SetPoint("BOTTOMRIGHT", anchor, "BOTTOMRIGHT", 4, -4)
     frame:SetFrameStrata("LOW")
-    frame:SetBackdrop(frameBD)
+
+    if pixelborder then
+        frame:SetAllPoints(anchor)
+        frame:SetBackdrop(backdrop2)
+    else
+        frame:SetPoint("TOPLEFT", anchor, "TOPLEFT", -4, 4)
+        frame:SetPoint("BOTTOMRIGHT", anchor, "BOTTOMRIGHT", 4, -4)
+        frame:SetBackdrop(frameBD)
+    end
+
     frame:SetBackdropColor(.05, .05, .05, 1)
     frame:SetBackdropBorderColor(0, 0, 0)
 
     return frame
 end
+ns.backdrop = createBackdrop
 
 local fixStatusbar = function(bar)
     bar:GetStatusBarTexture():SetHorizTile(false)
