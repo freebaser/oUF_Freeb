@@ -121,6 +121,19 @@ local createFont = function(parent, layer, font, fontsiz, outline, r, g, b, just
     return string
 end
 
+local updateEclipse = function(element, unit)
+    if element.hasSolarEclipse then
+        element.bd:SetBackdropBorderColor(1, .6, 0)
+        element.bd:SetBackdropColor(1, .6, 0)
+    elseif element.hasLunarEclipse then
+        element.bd:SetBackdropBorderColor(0, .4, 1)
+        element.bd:SetBackdropColor(0, .4, 1)
+    else
+        element.bd:SetBackdropBorderColor(0, 0, 0)
+        element.bd:SetBackdropColor(0, 0, 0)
+    end
+end
+
 local FormatTime = function(s)
     local day, hour, minute = 86400, 3600, 60
     if s >= day then
@@ -392,9 +405,32 @@ local UnitSpecific = {
         end
 
         if class == "DRUID" then
-            EclipseBarFrame:ClearAllPoints()
-            EclipseBarFrame:SetParent(self)
-            EclipseBarFrame:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -30)
+            local ebar = CreateFrame("Frame", nil, self)
+            ebar:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -33)
+            ebar:SetSize(150, 16)
+            ebar.bd = createBackdrop(ebar, ebar)
+
+            local lbar = createStatusbar(ebar, texture, nil, 16, 150, 0, .4, 1, 1)
+            lbar:SetPoint("LEFT", ebar, "LEFT")
+            ebar.LunarBar = lbar
+
+            local sbar = createStatusbar(ebar, texture, nil, 16, 150, 1, .6, 0, 1)
+            sbar:SetPoint("LEFT", lbar:GetStatusBarTexture(), "RIGHT")
+            ebar.SolarBar = sbar
+
+            ebar.Spark = sbar:CreateTexture(nil, "OVERLAY")
+            ebar.Spark:SetTexture[[Interface\CastingBar\UI-CastingBar-Spark]]
+            ebar.Spark:SetBlendMode("ADD")
+            ebar.Spark:SetAlpha(0.5)
+            ebar.Spark:SetHeight(48)
+            ebar.Spark:SetPoint("LEFT", sbar:GetStatusBarTexture(), "LEFT", -15, 0)
+
+            self.EclipseBar = ebar
+            self.EclipseBar.PostUnitAura = updateEclipse
+
+            --EclipseBarFrame:ClearAllPoints()
+            --EclipseBarFrame:SetParent(self)
+            --EclipseBarFrame:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -55)
         end
 
         if IsAddOnLoaded("oUF_TotemBar") and class == "SHAMAN" then
