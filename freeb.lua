@@ -178,7 +178,6 @@ local auraIcon = function(auras, button)
         button.overlay:SetPoint("TOPLEFT", button, "TOPLEFT", -2, 2)
         button.overlay:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 2, -2)
         button.overlay:SetTexCoord(0, 1, 0.02, 1)
-        button.overlay.Hide = function(self) self:SetVertexColor(0.33, 0.59, 0.33) end
     else
         button.overlay:Hide()
     end
@@ -537,6 +536,23 @@ local UnitSpecific = {
 
             self.Debuffs = debuffs
             self.Debuffs.num = 16
+
+            local Auras = CreateFrame("Frame", nil, self)
+            Auras:SetHeight(height+2)
+            Auras:SetWidth(width)
+            Auras:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 4)
+            Auras.spacing = 4
+            Auras.gap = true
+            Auras.size = height+2
+            Auras.initialAnchor = "BOTTOMLEFT"
+
+            Auras.PostCreateIcon = auraIcon
+            Auras.PostUpdateIcon = PostUpdateIcon
+            Auras.CustomFilter = CustomFilter
+
+            --self.Auras = Auras
+            --self.Auras.numDebuffs = 16
+            --self.Auras.numBuffs = 15
         end
 
         local cpoints = createFont(self, "OVERLAY", font, 24, "THINOUTLINE", 1, 0, 0)
@@ -766,9 +782,9 @@ oUF:RegisterStyle("Freeb", func)
 oUF:Factory(function(self)
     self:SetActiveStyle"Freeb"
 
-    self:Spawn"player":SetPoint("CENTER", -234, -192)
-    self:Spawn"target":SetPoint("CENTER", 234, -192)
-    self:Spawn"targettarget":SetPoint("CENTER", 0, -192)
+    self:Spawn"player":SetPoint("CENTER", -225, -225)
+    self:Spawn"target":SetPoint("CENTER", 225, -225)
+    self:Spawn"targettarget":SetPoint("CENTER", 0, -225)
     self:Spawn"focus":SetPoint("CENTER", 500, 0)
     self:Spawn"focustarget":SetPoint("RIGHT", self.units.focus, "LEFT", -10, 0)
     self:Spawn"pet":SetPoint("RIGHT", self.units.player, "LEFT", -10, 0)
