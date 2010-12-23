@@ -11,7 +11,7 @@ local scale = 1.0
 local hpheight = .85 -- .70 - .90 
 
 local overrideBlizzbuffs = false
-local castbars = false   -- disable castbars
+local castbars = true   -- disable castbars
 local auras = true  -- disable all auras
 local bossframes = true
 local auraborders = false
