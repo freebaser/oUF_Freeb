@@ -11,13 +11,13 @@ local scale = 1.0
 local hpheight = .85 -- .70 - .90 
 
 local overrideBlizzbuffs = false
-local castbars = true   -- disable castbars
+local castbars = false   -- disable castbars
 local auras = true  -- disable all auras
 local bossframes = true
 local auraborders = false
 
 local classColorbars = false
-local powerColor = false
+local powerColor = true
 local powerClass = false
 
 local portraits = true
@@ -224,6 +224,12 @@ do
             icon.remaining:Hide()
         end
 
+        --[[if icon.debuff then
+            icon.bg:SetBackdropBorderColor(.4, 0, 0)
+        else
+            icon.bg:SetBackdropBorderColor(0, 0, 0)
+        end]]
+
         icon.duration = duration
         icon.timeLeft = expirationTime
         icon.first = true
@@ -274,7 +280,7 @@ local CustomTimeText = function(castbar, duration)
 end
 
 local castbar = function(self, unit)
-    if multicheck(unit, "target", "player", "focus") then
+    if multicheck(unit, "target", "player", "focus", "pet") then
         local cb = createStatusbar(self, texture, "OVERLAY", 16, 150, 1, .25, .35, .5)
         cb:SetToplevel(true)
 
@@ -620,6 +626,10 @@ local UnitSpecific = {
             self.Debuffs = debuffs
             self.Debuffs.num = 8
         end
+    end,
+
+    focustarget = function(self)
+
     end,
 
     pet = function(self)
