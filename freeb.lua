@@ -225,9 +225,9 @@ do
         end
 
         --[[if icon.debuff then
-            icon.bg:SetBackdropBorderColor(.4, 0, 0)
+        icon.bg:SetBackdropBorderColor(.4, 0, 0)
         else
-            icon.bg:SetBackdropBorderColor(0, 0, 0)
+        icon.bg:SetBackdropBorderColor(0, 0, 0)
         end]]
 
         icon.duration = duration
@@ -261,21 +261,57 @@ local CustomFilter = function(icons, ...)
     end
 end
 
-local PostCastStart = function(castbar)
-    if castbar.interrupt then
-        castbar.Backdrop:SetBackdropBorderColor(1, .9, .4)
-        castbar.Backdrop:SetBackdropColor(1, .9, .4)
+local fade = function(self,elapsed)
+    self.update = self.update + elapsed
+    if self.update < .10 then return end
+
+    if self.alpha > 0 then
+        self.alpha = self.alpha - .20
+        self:SetAlpha(self.alpha)
     else
-        castbar.Backdrop:SetBackdropBorderColor(0, 0, 0)
-        castbar.Backdrop:SetBackdropColor(0, 0, 0)
+        self:Hide()
     end
+    
+    self.update = 0
+end
+
+local function CastFade(self)
+    self.alpha = 1.2
+    self.update = 0
+
+    self:SetAlpha(1)
+    self:Show()
+    self:SetScript("OnUpdate", fade)
+end
+
+local PostCastStart = function(castbar, unit)
+    if unit ~= 'player' then
+        if castbar.interrupt then
+            castbar.Backdrop:SetBackdropBorderColor(1, .9, .4)
+            castbar.Backdrop:SetBackdropColor(1, .9, .4)
+        else
+            castbar.Backdrop:SetBackdropBorderColor(0, 0, 0)
+            castbar.Backdrop:SetBackdropColor(0, 0, 0)
+        end
+    end
+    castbar.stopped:Hide()
+end
+
+local PostCastInterrupted = function(castbar, unit, spellname, _, castid)
+    castbar.stopped.text:SetText(INTERRUPTED)
+    CastFade(castbar.stopped) 
+end
+
+local PostCastFailed = function(castbar, unit, spellname, _, castid)
+    castbar.stopped.text:SetText(FAILED)
+    CastFade(castbar.stopped)
 end
 
 local CustomTimeText = function(castbar, duration)
     if castbar.casting then
-        castbar.Time:SetFormattedText("%.1f", castbar.max - duration)
+        castbar.Time:SetFormattedText("%.1f / %.1f", duration, castbar.max)
     elseif castbar.channeling then
-        castbar.Time:SetFormattedText("%.1f", duration)
+        castbar.Time:SetFormattedText("%.1f / %.1f", castbar.max - duration, castbar.max)
     end
 end
 
@@ -320,13 +356,27 @@ local castbar = function(self, unit)
             cb.Icon:SetPoint("TOPRIGHT", cb, "TOPLEFT", -7, 0)
         end
 
-        if (unit == 'target') then
-            cb.PostCastStart = PostCastStart
-            cb.PostChannelStart = PostCastStart
-        end
-
         cb.Backdrop = createBackdrop(cb, cb)
         cb.IBackdrop = createBackdrop(cb, cb.Icon)
+
+        local stopped = CreateFrame"Frame"
+        stopped:SetAllPoints(cb)
+        stopped:Hide()
+
+        stopped.bg = stopped:CreateTexture(nil, "BACKGROUND")
+        stopped.bg:SetAllPoints(stopped)
+        stopped.bg:SetTexture(texture)
+        stopped.bg:SetVertexColor(.75,.1,.1)
+
+        stopped.bd = createBackdrop(stopped, stopped)
+        stopped.text = createFont(stopped, "OVERLAY", font, 9, fontflag, 1, 1, 1)
+        stopped.text:SetPoint("CENTER", stopped)
+        cb.stopped = stopped
+
+        cb.PostCastStart = PostCastStart
+        cb.PostChannelStart = PostCastStart
+        cb.PostCastInterrupted = PostCastInterrupted
+        cb.PostCastFailed = PostCastFailed
 
         cb.bg = cbbg
         self.Castbar = cb
@@ -689,7 +739,7 @@ local func = function(self, unit)
     hp:SetPoint"LEFT"
     hp:SetPoint"RIGHT"
 
-    if(unit and (unit == "targettarget")) then
+    if(unit == "targettarget" or unit == "focustarget") then
         hp:SetHeight(height)
     else
         hp:SetHeight(height*hpheight)
@@ -710,7 +760,7 @@ local func = function(self, unit)
         hpbg:SetVertexColor(.3,.3,.3)
     end
 
-    if not (unit == "targettarget") then
+    if not (unit == "targettarget" or unit == "focustarget") then
         local hpp = createFont(hp, "OVERLAY", font, fontsize, fontflag, 1, 1, 1)
         hpp:SetPoint("RIGHT", hp, -2, 0)
         self:Tag(hpp, '[freeb:hp]')
@@ -719,7 +769,7 @@ local func = function(self, unit)
     hp.bg = hpbg
     self.Health = hp
 
-    if not (unit == "targettarget") then
+    if not (unit == "targettarget" or unit == "focustarget") then
         local pp = createStatusbar(self, texture, nil, height*-(hpheight-.95), nil, 1, 1, 1, 1)
         pp:SetPoint"LEFT"
         pp:SetPoint"RIGHT"
@@ -776,9 +826,19 @@ local func = function(self, unit)
     Resting:SetPoint('TOP', Combat, 'BOTTOM', 8, 0)
     self.Resting = Resting
 
+    local QuestIcon = hp:CreateTexture(nil, 'OVERLAY')
+    QuestIcon:SetSize(24, 24)
+    QuestIcon:SetPoint('BOTTOMRIGHT', hp, 15, -20)
+    self.QuestIcon = QuestIcon
+
+    local PhaseIcon = hp:CreateTexture(nil, 'OVERLAY')
+    PhaseIcon:SetSize(24, 24)
+    PhaseIcon:SetPoint('RIGHT', PvP, 'LEFT')
+    self.PhaseIcon = PhaseIcon
+
     if not (unit == "player") then
         local name = createFont(hp, "OVERLAY", font, fontsize, fontflag, 1, 1, 1)
-        if(unit == "targettarget") then
+        if(unit == "targettarget" or unit == "focustarget") then
             name:SetPoint("LEFT", hp)
             name:SetPoint("RIGHT", hp)
         else
@@ -788,13 +848,13 @@ local func = function(self, unit)
         end
 
         if classColorbars then
-            if(unit == "targettarget") then
+            if(unit == "targettarget" or unit == "focustarget") then
                 self:Tag(name, '[freeb:name]')
             else
                 self:Tag(name, '[freeb:name] [freeb:info]')
             end
         else
-            if(unit == "targettarget") then
+            if(unit == "targettarget" or unit == "focustarget") then
                 self:Tag(name, '[freeb:color][freeb:name]')
             else
                 self:Tag(name, '[freeb:color][freeb:name] [freeb:info]')
@@ -812,7 +872,7 @@ local func = function(self, unit)
     end
 
     self:SetSize(width, height)
-    if(unit and (unit == "targettarget")) then
+    if(unit == "targettarget" or unit == "focustarget") then
         self:SetSize(150, height)
     end
 
