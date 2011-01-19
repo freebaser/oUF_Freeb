@@ -125,3 +125,12 @@ end
 oUF.TagEvents['freeb:curxp'] = 'PLAYER_XP_UPDATE PLAYER_LEVEL_UP'
 oUF.TagEvents['freeb:maxxp'] = 'PLAYER_XP_UPDATE PLAYER_LEVEL_UP'
 oUF.TagEvents['freeb:perxp'] = 'PLAYER_XP_UPDATE PLAYER_LEVEL_UP'
+
+oUF.Tags['freeb:altpower'] = function(u)
+	local cur = UnitPower(u, ALTERNATE_POWER_INDEX)
+	local max = UnitPowerMax(u, ALTERNATE_POWER_INDEX)
+    local per = floor(cur/max*100)
+    
+    return format("%d", per > 0 and per or 0).."%"
+end
+oUF.TagEvents['freeb:altpower'] = "UNIT_POWER UNIT_MAXPOWER"

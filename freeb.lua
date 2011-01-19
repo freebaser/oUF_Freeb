@@ -14,7 +14,7 @@ local overrideBlizzbuffs = false
 local castbars = true   -- disable castbars
 local auras = true  -- disable all auras
 local bossframes = true
-local auraborders = false
+local auraborders = true
 
 local classColorbars = false
 local powerColor = true
@@ -131,6 +131,19 @@ local updateEclipse = function(element, unit)
     else
         element.bd:SetBackdropBorderColor(0, 0, 0)
         element.bd:SetBackdropColor(0, 0, 0)
+    end
+end
+
+local xphide
+local AltPower = function(self)
+    local barType, minPower, _, _, _, hideFromOthers = UnitAlternatePowerInfo(self.unit)
+
+    if barType and self.Experience:IsShown() then
+        self.Experience:Hide()
+        xphide = true
+    elseif xphide  then
+        self.Experience:Show()
+        xphide = nil
     end
 end
 
@@ -261,29 +274,6 @@ local CustomFilter = function(icons, ...)
     end
 end
 
-local fade = function(self,elapsed)
-    self.update = self.update + elapsed
-    if self.update < .10 then return end
-
-    if self.alpha > 0 then
-        self.alpha = self.alpha - .20
-        self:SetAlpha(self.alpha)
-    else
-        self:Hide()
-    end
-    
-    self.update = 0
-end
-
-local function CastFade(self)
-    self.alpha = 1.2
-    self.update = 0
-
-    self:SetAlpha(1)
-    self:Show()
-    self:SetScript("OnUpdate", fade)
-end
-
 local PostCastStart = function(castbar, unit)
     if unit ~= 'player' then
         if castbar.interrupt then
@@ -294,17 +284,6 @@ local PostCastStart = function(castbar, unit)
             castbar.Backdrop:SetBackdropColor(0, 0, 0)
         end
     end
-    castbar.stopped:Hide()
-end
-
-local PostCastInterrupted = function(castbar, unit, spellname, _, castid)
-    castbar.stopped.text:SetText(INTERRUPTED)
-    CastFade(castbar.stopped) 
-end
-
-local PostCastFailed = function(castbar, unit, spellname, _, castid)
-    castbar.stopped.text:SetText(FAILED)
-    CastFade(castbar.stopped)
 end
 
 local CustomTimeText = function(castbar, duration)
@@ -359,24 +338,8 @@ local castbar = function(self, unit)
         cb.Backdrop = createBackdrop(cb, cb)
         cb.IBackdrop = createBackdrop(cb, cb.Icon)
 
-        local stopped = CreateFrame"Frame"
-        stopped:SetAllPoints(cb)
-        stopped:Hide()
-
-        stopped.bg = stopped:CreateTexture(nil, "BACKGROUND")
-        stopped.bg:SetAllPoints(stopped)
-        stopped.bg:SetTexture(texture)
-        stopped.bg:SetVertexColor(.75,.1,.1)
-
-        stopped.bd = createBackdrop(stopped, stopped)
-        stopped.text = createFont(stopped, "OVERLAY", font, 9, fontflag, 1, 1, 1)
-        stopped.text:SetPoint("CENTER", stopped)
-        cb.stopped = stopped
-
         cb.PostCastStart = PostCastStart
         cb.PostChannelStart = PostCastStart
-        cb.PostCastInterrupted = PostCastInterrupted
-        cb.PostCastFailed = PostCastFailed
 
         cb.bg = cbbg
         self.Castbar = cb
@@ -393,9 +356,185 @@ local OnLeave = function(self)
     self.Experience.text:Hide()	
 end
 
+local func = function(self, unit)
+    self.menu = menu
+
+    self:SetBackdrop(backdrop)
+    self:SetBackdropColor(0, 0, 0)
+
+    self:SetScript("OnEnter", UnitFrame_OnEnter)
+    self:SetScript("OnLeave", UnitFrame_OnLeave)
+
+    self:RegisterForClicks"AnyDown"
+    self:SetAttribute("*type2", "menu")
+
+    self.FrameBackdrop = createBackdrop(self, self)
+
+    local hp = createStatusbar(self, texture, nil, nil, nil, .1, .1, .1, 1)
+    hp:SetPoint"TOP"
+    hp:SetPoint"LEFT"
+    hp:SetPoint"RIGHT"
+
+    if(unit == "targettarget" or unit == "focustarget") then
+        hp:SetHeight(height)
+    else
+        hp:SetHeight(height*hpheight)
+    end
+
+    hp.frequentUpdates = true
+    hp.Smooth = true
+
+    local hpbg = hp:CreateTexture(nil, "BORDER")
+    hpbg:SetAllPoints(hp)
+    hpbg:SetTexture(texture)
+
+    if classColorbars then
+        hp.colorClass = true
+        hp.colorReaction = true
+        hpbg.multiplier = .2
+    else
+        hpbg:SetVertexColor(.3,.3,.3)
+    end
+
+    if not (unit == "targettarget" or unit == "focustarget") then
+        local hpp = createFont(hp, "OVERLAY", font, fontsize, fontflag, 1, 1, 1)
+        hpp:SetPoint("RIGHT", hp, -2, 0)
+        self:Tag(hpp, '[freeb:hp]')
+    end
+
+    hp.bg = hpbg
+    self.Health = hp
+
+    if not (unit == "targettarget" or unit == "focustarget") then
+        local pp = createStatusbar(self, texture, nil, height*-(hpheight-.95), nil, 1, 1, 1, 1)
+        pp:SetPoint"LEFT"
+        pp:SetPoint"RIGHT"
+        pp:SetPoint"BOTTOM" 
+
+        pp.frequentUpdates = true
+        pp.Smooth = true
+
+        local ppbg = pp:CreateTexture(nil, "BORDER")
+        ppbg:SetAllPoints(pp)
+        ppbg:SetTexture(texture) 
+
+        if powerColor then
+            pp.colorPower = true
+            ppbg.multiplier = .2
+        elseif powerClass then
+            pp.colorClass = true
+            ppbg.multiplier = .2
+        else
+            ppbg:SetVertexColor(.3,.3,.3)
+        end
+
+        pp.bg = ppbg
+        self.Power = pp
+    end
+
+    local altpp = createStatusbar(self, texture, nil, 4, nil, .8, .8, .8, .7)
+    altpp:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 0, -2)
+    altpp:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', 0, -2)
+    altpp.bg = altpp:CreateTexture(nil, 'BORDER')
+    altpp.bg:SetAllPoints(altpp)
+    altpp.bg:SetTexture(texture)
+    altpp.bg:SetVertexColor(.1, .1, .1)
+    altpp.bd = createBackdrop(altpp, altpp)
+
+    altpp.Text =  createFont(altpp, "OVERLAY", font, fontsize, fontflag, 1, 1, 1)
+    altpp.Text:SetPoint("CENTER")
+    self:Tag(altpp.Text, "[freeb:altpower]")
+
+    self.AltPowerBar = altpp
+
+    local leader = hp:CreateTexture(nil, "OVERLAY")
+    leader:SetSize(16, 16)
+    leader:SetPoint("BOTTOMRIGHT", hp, "TOPLEFT", 10, -6)
+    self.Leader = leader
+
+    local masterlooter = hp:CreateTexture(nil, 'OVERLAY')
+    masterlooter:SetSize(16, 16)
+    masterlooter:SetPoint('LEFT', leader, 'RIGHT')
+    self.MasterLooter = masterlooter
+
+    local LFDRole = hp:CreateTexture(nil, 'OVERLAY')
+    LFDRole:SetSize(16, 16)
+    LFDRole:SetPoint('LEFT', masterlooter, 'RIGHT')
+    self.LFDRole = LFDRole
+
+    local PvP = hp:CreateTexture(nil, 'OVERLAY')
+    PvP:SetSize(24, 24)
+    PvP:SetPoint('TOPRIGHT', hp, 12, 8)
+    self.PvP = PvP
+
+    local Combat = hp:CreateTexture(nil, 'OVERLAY')
+    Combat:SetSize(20, 20)
+    Combat:SetPoint('BOTTOMLEFT', hp, -10, -10)
+    self.Combat = Combat
+
+    local Resting = hp:CreateTexture(nil, 'OVERLAY')
+    Resting:SetSize(20, 20)
+    Resting:SetPoint('TOP', Combat, 'BOTTOM', 8, 0)
+    self.Resting = Resting
+
+    local QuestIcon = hp:CreateTexture(nil, 'OVERLAY')
+    QuestIcon:SetSize(24, 24)
+    QuestIcon:SetPoint('BOTTOMRIGHT', hp, 15, -20)
+    self.QuestIcon = QuestIcon
+
+    local PhaseIcon = hp:CreateTexture(nil, 'OVERLAY')
+    PhaseIcon:SetSize(24, 24)
+    PhaseIcon:SetPoint('RIGHT', PvP, 'LEFT')
+    self.PhaseIcon = PhaseIcon
+
+    if not (unit == "player") then
+        local name = createFont(hp, "OVERLAY", font, fontsize, fontflag, 1, 1, 1)
+        if(unit == "targettarget" or unit == "focustarget") then
+            name:SetPoint("LEFT", hp)
+            name:SetPoint("RIGHT", hp)
+        else
+            name:SetPoint("LEFT", hp, 2, 0)
+            name:SetPoint("RIGHT", hp, -55, 0)
+            name:SetJustifyH"LEFT"
+        end
+
+        if classColorbars then
+            if(unit == "targettarget" or unit == "focustarget") then
+                self:Tag(name, '[freeb:name]')
+            else
+                self:Tag(name, '[freeb:name] [freeb:info]')
+            end
+        else
+            if(unit == "targettarget" or unit == "focustarget") then
+                self:Tag(name, '[freeb:color][freeb:name]')
+            else
+                self:Tag(name, '[freeb:color][freeb:name] [freeb:info]')
+            end
+        end
+    end
+
+    local ricon = hp:CreateTexture(nil, 'OVERLAY')
+    ricon:SetPoint("BOTTOM", hp, "TOP", 0, -7)
+    ricon:SetSize(16, 16)
+    self.RaidIcon = ricon
+
+    if castbars then
+        castbar(self, unit)
+    end
+
+    self:SetSize(width, height)
+    if(unit == "targettarget" or unit == "focustarget") then
+        self:SetSize(150, height)
+    end
+
+    self:SetScale(scale)
+end
+
 local UnitSpecific = {
 
-    player = function(self)
+    player = function(self, ...)
+        func(self, ...)
+
         if portraits then
             self.Portrait = CreateFrame("PlayerModel", nil, self)
             self.Portrait:SetWidth(60)
@@ -537,6 +676,9 @@ local UnitSpecific = {
 
             self:SetScript("OnEnter", OnEnter)
             self:SetScript("OnLeave", OnLeave)
+
+            self:RegisterEvent('UNIT_POWER_BAR_SHOW', AltPower)
+            self:RegisterEvent('UNIT_POWER_BAR_HIDE', AltPower)
         end
 
         if overrideBlizzbuffs then
@@ -587,7 +729,9 @@ local UnitSpecific = {
         end
     end,
 
-    target = function(self)
+    target = function(self, ...)
+        func(self, ...)
+
         if portraits then
             self.Portrait = CreateFrame("PlayerModel", nil, self)
             self.Portrait:SetWidth(60)
@@ -652,7 +796,9 @@ local UnitSpecific = {
         self:Tag(cpoints, '[cpoints]')
     end,
 
-    focus = function(self)
+    focus = function(self, ...)
+        func(self, ...)
+
         if portraits then
             self.Portrait = CreateFrame("PlayerModel", nil, self)
             self.Portrait:SetWidth(60)
@@ -678,11 +824,14 @@ local UnitSpecific = {
         end
     end,
 
-    focustarget = function(self)
+    focustarget = function(self, ...)
+        func(self, ...)
 
     end,
 
-    pet = function(self)
+    pet = function(self, ...)
+        func(self, ...)
+
         if auras then 
             local debuffs = CreateFrame("Frame", nil, self)
             debuffs:SetHeight(height+2)
@@ -700,7 +849,9 @@ local UnitSpecific = {
         end
     end,
 
-    targettarget = function(self)
+    targettarget = function(self, ...)
+        func(self, ...)
+
         if auras then 
             local debuffs = CreateFrame("Frame", nil, self)
             debuffs:SetHeight(height+2)
@@ -718,194 +869,59 @@ local UnitSpecific = {
             self.Debuffs.num = 5 
         end
     end,
+
+    boss = function(self, ...)
+        func(self, ...)
+
+        local Auras = CreateFrame("Frame", nil, self)
+        Auras:SetHeight(height+2)
+        Auras:SetWidth(width)
+        Auras:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 4)
+        Auras.spacing = 4
+        Auras.gap = true
+        Auras.size = height+2
+        Auras.initialAnchor = "BOTTOMLEFT"
+
+        Auras.PostCreateIcon = auraIcon
+        Auras.PostUpdateIcon = PostUpdateIcon
+        Auras.CustomFilter = CustomFilter
+
+        self.Auras = Auras
+        self.Auras.numDebuffs = 4
+        self.Auras.numBuffs = 3
+    end,
 }
 
-local func = function(self, unit)
-    self.menu = menu
-
-    self:SetBackdrop(backdrop)
-    self:SetBackdropColor(0, 0, 0)
-
-    self:SetScript("OnEnter", UnitFrame_OnEnter)
-    self:SetScript("OnLeave", UnitFrame_OnLeave)
-
-    self:RegisterForClicks"AnyDown"
-    self:SetAttribute("*type2", "menu")
-
-    self.FrameBackdrop = createBackdrop(self, self)
-
-    local hp = createStatusbar(self, texture, nil, nil, nil, .1, .1, .1, 1)
-    hp:SetPoint"TOP"
-    hp:SetPoint"LEFT"
-    hp:SetPoint"RIGHT"
-
-    if(unit == "targettarget" or unit == "focustarget") then
-        hp:SetHeight(height)
-    else
-        hp:SetHeight(height*hpheight)
-    end
-
-    hp.frequentUpdates = true
-    hp.Smooth = true
-
-    local hpbg = hp:CreateTexture(nil, "BORDER")
-    hpbg:SetAllPoints(hp)
-    hpbg:SetTexture(texture)
-
-    if classColorbars then
-        hp.colorClass = true
-        hp.colorReaction = true
-        hpbg.multiplier = .2
-    else
-        hpbg:SetVertexColor(.3,.3,.3)
-    end
-
-    if not (unit == "targettarget" or unit == "focustarget") then
-        local hpp = createFont(hp, "OVERLAY", font, fontsize, fontflag, 1, 1, 1)
-        hpp:SetPoint("RIGHT", hp, -2, 0)
-        self:Tag(hpp, '[freeb:hp]')
-    end
-
-    hp.bg = hpbg
-    self.Health = hp
-
-    if not (unit == "targettarget" or unit == "focustarget") then
-        local pp = createStatusbar(self, texture, nil, height*-(hpheight-.95), nil, 1, 1, 1, 1)
-        pp:SetPoint"LEFT"
-        pp:SetPoint"RIGHT"
-        pp:SetPoint"BOTTOM" 
-
-        pp.frequentUpdates = true
-        pp.Smooth = true
-
-        local ppbg = pp:CreateTexture(nil, "BORDER")
-        ppbg:SetAllPoints(pp)
-        ppbg:SetTexture(texture) 
-
-        if powerColor then
-            pp.colorPower = true
-            ppbg.multiplier = .2
-        elseif powerClass then
-            pp.colorClass = true
-            ppbg.multiplier = .2
-        else
-            ppbg:SetVertexColor(.3,.3,.3)
-        end
-
-        pp.bg = ppbg
-        self.Power = pp
-    end
-
-    local leader = hp:CreateTexture(nil, "OVERLAY")
-    leader:SetSize(16, 16)
-    leader:SetPoint("BOTTOMRIGHT", hp, "TOPLEFT", 10, -6)
-    self.Leader = leader
-
-    local masterlooter = hp:CreateTexture(nil, 'OVERLAY')
-    masterlooter:SetSize(16, 16)
-    masterlooter:SetPoint('LEFT', leader, 'RIGHT')
-    self.MasterLooter = masterlooter
-
-    local LFDRole = hp:CreateTexture(nil, 'OVERLAY')
-    LFDRole:SetSize(16, 16)
-    LFDRole:SetPoint('LEFT', masterlooter, 'RIGHT')
-    self.LFDRole = LFDRole
-
-    local PvP = hp:CreateTexture(nil, 'OVERLAY')
-    PvP:SetSize(24, 24)
-    PvP:SetPoint('TOPRIGHT', hp, 12, 8)
-    self.PvP = PvP
-
-    local Combat = hp:CreateTexture(nil, 'OVERLAY')
-    Combat:SetSize(20, 20)
-    Combat:SetPoint('BOTTOMLEFT', hp, -10, -10)
-    self.Combat = Combat
-
-    local Resting = hp:CreateTexture(nil, 'OVERLAY')
-    Resting:SetSize(20, 20)
-    Resting:SetPoint('TOP', Combat, 'BOTTOM', 8, 0)
-    self.Resting = Resting
-
-    local QuestIcon = hp:CreateTexture(nil, 'OVERLAY')
-    QuestIcon:SetSize(24, 24)
-    QuestIcon:SetPoint('BOTTOMRIGHT', hp, 15, -20)
-    self.QuestIcon = QuestIcon
-
-    local PhaseIcon = hp:CreateTexture(nil, 'OVERLAY')
-    PhaseIcon:SetSize(24, 24)
-    PhaseIcon:SetPoint('RIGHT', PvP, 'LEFT')
-    self.PhaseIcon = PhaseIcon
-
-    if not (unit == "player") then
-        local name = createFont(hp, "OVERLAY", font, fontsize, fontflag, 1, 1, 1)
-        if(unit == "targettarget" or unit == "focustarget") then
-            name:SetPoint("LEFT", hp)
-            name:SetPoint("RIGHT", hp)
-        else
-            name:SetPoint("LEFT", hp, 2, 0)
-            name:SetPoint("RIGHT", hp, -55, 0)
-            name:SetJustifyH"LEFT"
-        end
-
-        if classColorbars then
-            if(unit == "targettarget" or unit == "focustarget") then
-                self:Tag(name, '[freeb:name]')
-            else
-                self:Tag(name, '[freeb:name] [freeb:info]')
-            end
-        else
-            if(unit == "targettarget" or unit == "focustarget") then
-                self:Tag(name, '[freeb:color][freeb:name]')
-            else
-                self:Tag(name, '[freeb:color][freeb:name] [freeb:info]')
-            end
-        end
-    end
-
-    local ricon = hp:CreateTexture(nil, 'OVERLAY')
-    ricon:SetPoint("BOTTOM", hp, "TOP", 0, -7)
-    ricon:SetSize(16, 16)
-    self.RaidIcon = ricon
-
-    if castbars then
-        castbar(self, unit)
-    end
-
-    self:SetSize(width, height)
-    if(unit == "targettarget" or unit == "focustarget") then
-        self:SetSize(150, height)
-    end
-
-    self:SetScale(scale)
-
-    if(UnitSpecific[unit]) then
-        return UnitSpecific[unit](self)
-    end
+oUF:RegisterStyle("Freeb", func)
+for unit,layout in next, UnitSpecific do
+    oUF:RegisterStyle('Freeb - ' .. unit:gsub("^%l", string.upper), layout)
 end
 
-oUF:RegisterStyle("Freeb", func)
+local spawnHelper = function(self, unit, ...)
+    if(UnitSpecific[unit]) then
+        self:SetActiveStyle('Freeb - ' .. unit:gsub("^%l", string.upper))
+    elseif(UnitSpecific[unit:match('[^%d]+')]) then -- boss1 -> boss
+        self:SetActiveStyle('Freeb - ' .. unit:match('[^%d]+'):gsub("^%l", string.upper))
+    else
+        self:SetActiveStyle'Freeb'
+    end
+
+    local object = self:Spawn(unit)
+    object:SetPoint(...)
+    return object
+end
 
 oUF:Factory(function(self)
-    self:SetActiveStyle"Freeb"
-
-    self:Spawn"player":SetPoint("CENTER", -225, -225)
-    self:Spawn"target":SetPoint("CENTER", 225, -225)
-    self:Spawn"targettarget":SetPoint("CENTER", 0, -225)
-    self:Spawn"focus":SetPoint("CENTER", 500, 0)
-    self:Spawn"focustarget":SetPoint("RIGHT", self.units.focus, "LEFT", -10, 0)
-    self:Spawn"pet":SetPoint("RIGHT", self.units.player, "LEFT", -10, 0)
+    spawnHelper(self, "player", "CENTER", -225, -225)
+    spawnHelper(self, "target", "CENTER", 225, -225)
+    spawnHelper(self, "targettarget", "CENTER", 0, -225)
+    spawnHelper(self, "focus", "CENTER", 580, 0)
+    spawnHelper(self, "focustarget", "RIGHT", self.units.focus, "LEFT", -10, 0)
+    spawnHelper(self, "pet", "RIGHT", self.units.player, "LEFT", -10, 0)
 
     if bossframes then
-        local boss = {}
         for i = 1, MAX_BOSS_FRAMES do
-            local unit = self:Spawn("boss"..i, "oUF_FreebBoss"..i)
-
-            if i==1 then
-                unit:SetPoint("CENTER", 500, 200)
-            else
-                unit:SetPoint("TOPLEFT", boss[i-1], "BOTTOMLEFT", 0, -10)
-            end
-            boss[i] = unit
+            spawnHelper(self,'boss' .. i, "CENTER", 580, 350 - (70 * i))
         end
     end
 end)
