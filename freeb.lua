@@ -295,7 +295,8 @@ local CustomTimeText = function(castbar, duration)
 end
 
 local castbar = function(self, unit)
-    if multicheck(unit, "target", "player", "focus", "pet") then
+    local u = unit:match('[^%d]+')
+    if multicheck(u, "target", "player", "focus", "pet", "boss") then
         local cb = createStatusbar(self, texture, "OVERLAY", 16, 150, 1, .25, .35, .5)
         cb:SetToplevel(true)
 
@@ -915,13 +916,13 @@ oUF:Factory(function(self)
     spawnHelper(self, "player", "CENTER", -225, -225)
     spawnHelper(self, "target", "CENTER", 225, -225)
     spawnHelper(self, "targettarget", "CENTER", 0, -225)
-    spawnHelper(self, "focus", "CENTER", 580, 0)
+    spawnHelper(self, "focus", "CENTER", 580, -60)
     spawnHelper(self, "focustarget", "RIGHT", self.units.focus, "LEFT", -10, 0)
     spawnHelper(self, "pet", "RIGHT", self.units.player, "LEFT", -10, 0)
 
     if bossframes then
         for i = 1, MAX_BOSS_FRAMES do
-            spawnHelper(self,'boss' .. i, "CENTER", 580, 350 - (70 * i))
+            spawnHelper(self,'boss' .. i, "CENTER", 580, 350 - (80 * i))
         end
     end
 end)
