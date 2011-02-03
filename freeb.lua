@@ -14,7 +14,7 @@ local overrideBlizzbuffs = false
 local castbars = true   -- disable castbars
 local auras = true  -- disable all auras
 local bossframes = true
-local auraborders = true
+local auraborders = false
 
 local classColorbars = false
 local powerColor = true
@@ -145,6 +145,20 @@ local AltPower = function(self)
         self.Experience:Show()
         xphide = nil
     end
+
+    self.AltPowerBar.Text:UpdateTag()
+end
+
+local PostAltUpdate = function(altpp, min, cur, max)
+    local self = altpp.__owner
+
+    local tPath, r, g, b = UnitAlternatePowerTextureInfo(self.unit, 2)
+    
+    if(r) then
+        altpp:SetStatusBarColor(r, g, b, 1)
+    else
+        altpp:SetStatusBarColor(1, 1, 1, .8)
+    end 
 end
 
 local FormatTime = function(s)
@@ -433,7 +447,7 @@ local func = function(self, unit)
         self.Power = pp
     end
 
-    local altpp = createStatusbar(self, texture, nil, 4, nil, .8, .8, .8, .7)
+    local altpp = createStatusbar(self, texture, nil, 4, nil, 1, 1, 1, .8)
     altpp:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 0, -2)
     altpp:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', 0, -2)
     altpp.bg = altpp:CreateTexture(nil, 'BORDER')
@@ -446,6 +460,7 @@ local func = function(self, unit)
     altpp.Text:SetPoint("CENTER")
     self:Tag(altpp.Text, "[freeb:altpower]")
 
+    altpp.PostUpdate = PostAltUpdate
     self.AltPowerBar = altpp
 
     local leader = hp:CreateTexture(nil, "OVERLAY")
