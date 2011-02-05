@@ -525,21 +525,19 @@ local func = function(self, unit)
     if(unit == "targettarget" or unit == "focustarget") then
         name:SetPoint("LEFT", hp)
         name:SetPoint("RIGHT", hp)
+
+        if classColorbars then
+            self:Tag(name, '[freeb:name]')
+        else
+            self:Tag(name, '[freeb:color][freeb:name]')
+        end
     else
         name:SetPoint("LEFT", hp, 2, 0)
         name:SetPoint("RIGHT", hp, -95, 0)
         name:SetJustifyH"LEFT"
-    end
 
-    if classColorbars then
-        if(unit == "targettarget" or unit == "focustarget") then
-            self:Tag(name, '[freeb:name]')
-        else
+        if classColorbars then
             self:Tag(name, '[freeb:info] [freeb:name]')
-        end
-    else
-        if(unit == "targettarget" or unit == "focustarget") then
-            self:Tag(name, '[freeb:color][freeb:name]')
         else
             self:Tag(name, '[freeb:info] [freeb:color][freeb:name]')
         end
