@@ -432,7 +432,12 @@ local func = function(self, unit)
     if not (unit == "targettarget" or unit == "focustarget") then
         local hpp = createFont(hp, "OVERLAY", font, fontsize, fontflag, 1, 1, 1)
         hpp:SetPoint("RIGHT", hp, -2, 0)
-        self:Tag(hpp, '[freeb:pp] [freeb:hp]')
+
+        if(unit == "player") then
+            self:Tag(hpp, '[freeb:hp]')
+        else
+            self:Tag(hpp, '[freeb:pp] [freeb:hp]')
+        end
     end
 
     hp.bg = hpbg
@@ -536,7 +541,9 @@ local func = function(self, unit)
         name:SetPoint("RIGHT", hp, -95, 0)
         name:SetJustifyH"LEFT"
 
-        if classColorbars then
+        if(unit == "player") then
+            self:Tag(name, '[freeb:pp]')
+        elseif classColorbars then
             self:Tag(name, '[freeb:info] [freeb:name]')
         else
             self:Tag(name, '[freeb:info] [freeb:color][freeb:name]')

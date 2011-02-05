@@ -32,13 +32,13 @@ oUF.Tags['freeb:lvl'] = function(u)
     end
 
     if typ=="rareelite" then
-        return hex(color)..level..'r+'
+        return hex(color)..level..'r+|r'
     elseif typ=="elite" then
-        return hex(color)..level..'+'
+        return hex(color)..level..'+|r'
     elseif typ=="rare" then
-        return hex(color)..level..'r'
+        return hex(color)..level..'r|r'
     else
-        return hex(color)..level
+        return hex(color)..level..'|r'
     end
 end
 
