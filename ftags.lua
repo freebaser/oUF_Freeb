@@ -50,10 +50,10 @@ oUF.TagEvents['freeb:hp'] = 'UNIT_HEALTH'
 
 oUF.Tags['freeb:pp'] = function(u)
     local _, str = UnitPowerType(u)
-    if str then
-        return hex(oUF.colors.power[str])..siValue(UnitPower(u))
-    else
-        return "|cffFFFFFF"..siValue(UnitPower(u)).."|r"
+    local power = UnitPower(u)
+
+    if str and power > 0 then
+        return hex(oUF.colors.power[str])..siValue(power).."|r"
     end
 end
 oUF.TagEvents['freeb:pp'] = 'UNIT_POWER'
@@ -84,9 +84,9 @@ oUF.TagEvents['freeb:name'] = 'UNIT_NAME_UPDATE'
 
 oUF.Tags['freeb:info'] = function(u)
     if UnitIsDead(u) then
-        return oUF.Tags['freeb:lvl'](u).."|cffCFCFCF Dead|r"
+        return oUF.Tags['freeb:lvl'](u).."|cffCFCFCF RIP|r"
     elseif UnitIsGhost(u) then
-        return oUF.Tags['freeb:lvl'](u).."|cffCFCFCF Ghost|r"
+        return oUF.Tags['freeb:lvl'](u).."|cffCFCFCF Gho|r"
     elseif not UnitIsConnected(u) then
         return oUF.Tags['freeb:lvl'](u).."|cffCFCFCF D/C|r"
     else

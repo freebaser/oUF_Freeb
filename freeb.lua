@@ -1,4 +1,4 @@
-local _, ns = ...
+local ADDON_NAME, ns = ...
 
 local mediaPath = "Interface\\AddOns\\oUF_Freeb\\media\\"
 local texture = mediaPath.."Cabaret"
@@ -6,7 +6,7 @@ local font, fontsize, fontflag = mediaPath.."myriad.ttf", 12, "THINOUTLINE" -- "
 
 local glowTex = mediaPath.."glowTex"
 local buttonTex = mediaPath.."buttontex"
-local height, width = 22, 220
+local height, width = 22, 225
 local scale = 1.0
 local hpheight = .85 -- .70 - .90 
 
@@ -53,20 +53,49 @@ local frameBD = {
     insets = {left = 3, right = 3, top = 3, bottom = 3}
 }
 
-local menu = function(self)
-    local unit = self.unit:sub(1, -2)
-    local cunit = self.unit:gsub("^%l", string.upper)
+-- Unit Menu
+local dropdown = CreateFrame('Frame', ADDON_NAME .. 'DropDown', UIParent, 'UIDropDownMenuTemplate')
 
-    if(cunit == 'Vehicle') then
-        cunit = 'Pet'
+local function menu(self)
+    dropdown:SetParent(self)
+    return ToggleDropDownMenu(1, nil, dropdown, 'cursor', 0, 0)
+end
+
+local init = function(self)
+    local unit = self:GetParent().unit
+    local menu, name, id
+
+    if(not unit) then
+        return
     end
 
-    if(unit == "party" or unit == "partypet") then
-        ToggleDropDownMenu(1, nil, _G["PartyMemberFrame"..self.id.."DropDown"], "cursor", 0, 0)
-    elseif(_G[cunit.."FrameDropDown"]) then
-        ToggleDropDownMenu(1, nil, _G[cunit.."FrameDropDown"], "cursor", 0, 0)
+    if(UnitIsUnit(unit, "player")) then
+        menu = "SELF"
+    elseif(UnitIsUnit(unit, "vehicle")) then
+        menu = "VEHICLE"
+    elseif(UnitIsUnit(unit, "pet")) then
+        menu = "PET"
+    elseif(UnitIsPlayer(unit)) then
+        id = UnitInRaid(unit)
+        if(id) then
+            menu = "RAID_PLAYER"
+            name = GetRaidRosterInfo(id)
+        elseif(UnitInParty(unit)) then
+            menu = "PARTY"
+        else
+            menu = "PLAYER"
+        end
+    else
+        menu = "TARGET"
+        name = RAID_TARGET_ICON
+    end
+
+    if(menu) then
+        UnitPopup_ShowMenu(self, menu, unit, name, id)
     end
 end
+
+UIDropDownMenu_Initialize(dropdown, init, 'MENU')
 
 local createBackdrop = function(parent, anchor) 
     local frame = CreateFrame("Frame", nil, parent)
@@ -153,7 +182,7 @@ local PostAltUpdate = function(altpp, min, cur, max)
     local self = altpp.__owner
 
     local tPath, r, g, b = UnitAlternatePowerTextureInfo(self.unit, 2)
-    
+
     if(r) then
         altpp:SetStatusBarColor(r, g, b, 1)
     else
@@ -161,37 +190,33 @@ local PostAltUpdate = function(altpp, min, cur, max)
     end 
 end
 
+local GetTime = GetTime
+local floor, fmod = floor, math.fmod
+local day, hour, minute = 86400, 3600, 60
+
 local FormatTime = function(s)
-    local day, hour, minute = 86400, 3600, 60
     if s >= day then
-        return format("%dd", floor(s/day + 0.5)), s % day
+        return format("%dd", floor(s/day + 0.5))
     elseif s >= hour then
-        return format("%dh", floor(s/hour + 0.5)), s % hour
+        return format("%dh", floor(s/hour + 0.5))
     elseif s >= minute then
-        return format("%dm", floor(s/minute + 0.5)), s % minute
+        return format("%dm", floor(s/minute + 0.5))
     end
-    return floor(s + 0.5), (s * 100 - floor(s * 100))/100
+
+    return format("%d", fmod(s, minute))
 end
 
 local CreateAuraTimer = function(self,elapsed)
-    if self.timeLeft then
-        self.elapsed = (self.elapsed or 0) + elapsed
-        if self.elapsed >= 0.1 then
-            if not self.first then
-                self.timeLeft = self.timeLeft - self.elapsed
-            else
-                self.timeLeft = self.timeLeft - GetTime()
-                self.first = false
-            end
-            if self.timeLeft > 0 then
-                local atime = FormatTime(self.timeLeft)
-                self.remaining:SetText(atime)
-            else
-                self.remaining:Hide()
-                self:SetScript("OnUpdate", nil)
-            end
-            self.elapsed = 0
-        end
+    self.elapsed = (self.elapsed or 0) + elapsed
+
+    if self.elapsed < .2 then return end
+    self.elapsed = 0
+
+    local timeLeft = self.expires - GetTime()
+    if timeLeft <= 0 then
+        return
+    else
+        self.remaining:SetText(FormatTime(timeLeft))
     end
 end
 
@@ -258,8 +283,7 @@ do
         end]]
 
         icon.duration = duration
-        icon.timeLeft = expirationTime
-        icon.first = true
+        icon.expires = expirationTime
         icon:SetScript("OnUpdate", CreateAuraTimer)
     end
 end
@@ -308,6 +332,9 @@ local CustomTimeText = function(castbar, duration)
     end
 end
 
+--========================--
+--  Castbars
+--========================--
 local castbar = function(self, unit)
     local u = unit:match('[^%d]+')
     if multicheck(u, "target", "player", "focus", "pet", "boss") then
@@ -361,16 +388,9 @@ local castbar = function(self, unit)
     end
 end
 
-local OnEnter = function(self)
-    UnitFrame_OnEnter(self)
-    self.Experience.text:Show()	
-end
-
-local OnLeave = function(self)
-    UnitFrame_OnLeave(self)
-    self.Experience.text:Hide()	
-end
-
+--========================--
+--  Shared
+--========================--
 local func = function(self, unit)
     self.menu = menu
 
@@ -379,9 +399,7 @@ local func = function(self, unit)
 
     self:SetScript("OnEnter", UnitFrame_OnEnter)
     self:SetScript("OnLeave", UnitFrame_OnLeave)
-
-    self:RegisterForClicks"AnyDown"
-    self:SetAttribute("*type2", "menu")
+    self:RegisterForClicks"AnyUp"
 
     self.FrameBackdrop = createBackdrop(self, self)
 
@@ -414,7 +432,7 @@ local func = function(self, unit)
     if not (unit == "targettarget" or unit == "focustarget") then
         local hpp = createFont(hp, "OVERLAY", font, fontsize, fontflag, 1, 1, 1)
         hpp:SetPoint("RIGHT", hp, -2, 0)
-        self:Tag(hpp, '[freeb:hp]')
+        self:Tag(hpp, '[freeb:pp] [freeb:hp]')
     end
 
     hp.bg = hpbg
@@ -500,32 +518,30 @@ local func = function(self, unit)
 
     local PhaseIcon = hp:CreateTexture(nil, 'OVERLAY')
     PhaseIcon:SetSize(24, 24)
-    PhaseIcon:SetPoint('RIGHT', PvP, 'LEFT')
+    PhaseIcon:SetPoint('RIGHT', QuestIcon, 'LEFT')
     self.PhaseIcon = PhaseIcon
 
-    if not (unit == "player") then
-        local name = createFont(hp, "OVERLAY", font, fontsize, fontflag, 1, 1, 1)
-        if(unit == "targettarget" or unit == "focustarget") then
-            name:SetPoint("LEFT", hp)
-            name:SetPoint("RIGHT", hp)
-        else
-            name:SetPoint("LEFT", hp, 2, 0)
-            name:SetPoint("RIGHT", hp, -55, 0)
-            name:SetJustifyH"LEFT"
-        end
+    local name = createFont(hp, "OVERLAY", font, fontsize, fontflag, 1, 1, 1)
+    if(unit == "targettarget" or unit == "focustarget") then
+        name:SetPoint("LEFT", hp)
+        name:SetPoint("RIGHT", hp)
+    else
+        name:SetPoint("LEFT", hp, 2, 0)
+        name:SetPoint("RIGHT", hp, -95, 0)
+        name:SetJustifyH"LEFT"
+    end
 
-        if classColorbars then
-            if(unit == "targettarget" or unit == "focustarget") then
-                self:Tag(name, '[freeb:name]')
-            else
-                self:Tag(name, '[freeb:name] [freeb:info]')
-            end
+    if classColorbars then
+        if(unit == "targettarget" or unit == "focustarget") then
+            self:Tag(name, '[freeb:name]')
         else
-            if(unit == "targettarget" or unit == "focustarget") then
-                self:Tag(name, '[freeb:color][freeb:name]')
-            else
-                self:Tag(name, '[freeb:color][freeb:name] [freeb:info]')
-            end
+            self:Tag(name, '[freeb:info] [freeb:name]')
+        end
+    else
+        if(unit == "targettarget" or unit == "focustarget") then
+            self:Tag(name, '[freeb:color][freeb:name]')
+        else
+            self:Tag(name, '[freeb:info] [freeb:color][freeb:name]')
         end
     end
 
@@ -548,6 +564,9 @@ end
 
 local UnitSpecific = {
 
+    --========================--
+    --  Player
+    --========================--
     player = function(self, ...)
         func(self, ...)
 
@@ -558,11 +577,6 @@ local UnitSpecific = {
             self.Portrait:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, -10)
             self.PorBackdrop = createBackdrop(self, self.Portrait)
         end
-
-        local ppp = createFont(self.Health, "OVERLAY", font, fontsize, fontflag, 1, 1, 1)
-        ppp:SetPoint("LEFT", 2, 0)
-        ppp.frequentUpdates = true
-        self:Tag(ppp, '[freeb:pp]')
 
         local _, class = UnitClass("player")
         -- Runes, Shards, HolyPower
@@ -669,6 +683,16 @@ local UnitSpecific = {
         end
 
         if(IsAddOnLoaded('oUF_Experience')) then
+            local OnEnter = function(self)
+                UnitFrame_OnEnter(self)
+                self.Experience.text:Show()	
+            end
+
+            local OnLeave = function(self)
+                UnitFrame_OnLeave(self)
+                self.Experience.text:Hide()	
+            end
+
             self.Experience = createStatusbar(self, texture, nil, 4, nil, 0, .7, 1, 1)
             self.Experience:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 0, -2)
             self.Experience:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', 0, -2)
@@ -745,6 +769,9 @@ local UnitSpecific = {
         end
     end,
 
+    --========================--
+    --  Target
+    --========================--
     target = function(self, ...)
         func(self, ...)
 
@@ -812,6 +839,9 @@ local UnitSpecific = {
         self:Tag(cpoints, '[cpoints]')
     end,
 
+    --========================--
+    --  Focus
+    --========================--
     focus = function(self, ...)
         func(self, ...)
 
@@ -840,11 +870,17 @@ local UnitSpecific = {
         end
     end,
 
+    --========================--
+    --  Focus Target
+    --========================--
     focustarget = function(self, ...)
         func(self, ...)
 
     end,
 
+    --========================--
+    --  Pet
+    --========================--
     pet = function(self, ...)
         func(self, ...)
 
@@ -865,6 +901,9 @@ local UnitSpecific = {
         end
     end,
 
+    --========================--
+    --  Target Target
+    --========================--
     targettarget = function(self, ...)
         func(self, ...)
 
@@ -886,6 +925,9 @@ local UnitSpecific = {
         end
     end,
 
+    --========================--
+    --  Boss
+    --========================--
     boss = function(self, ...)
         func(self, ...)
 
@@ -902,9 +944,9 @@ local UnitSpecific = {
         Auras.PostUpdateIcon = PostUpdateIcon
         Auras.CustomFilter = CustomFilter
 
-        self.Auras = Auras
-        self.Auras.numDebuffs = 4
-        self.Auras.numBuffs = 3
+        --self.Auras = Auras
+        --self.Auras.numDebuffs = 4
+        --self.Auras.numBuffs = 3
     end,
 }
 
@@ -937,7 +979,7 @@ oUF:Factory(function(self)
 
     if bossframes then
         for i = 1, MAX_BOSS_FRAMES do
-            spawnHelper(self,'boss' .. i, "CENTER", 580, 350 - (80 * i))
+            spawnHelper(self,'boss' .. i, "CENTER", 580, 350 - (60 * i))
         end
     end
 end)
