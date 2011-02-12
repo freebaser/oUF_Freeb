@@ -214,7 +214,7 @@ local CreateAuraTimer = function(self,elapsed)
 
     local timeLeft = self.expires - GetTime()
     if timeLeft <= 0 then
-        return
+        self.remaining:SetText(nil)
     else
         self.remaining:SetText(FormatTime(timeLeft))
     end
@@ -436,7 +436,7 @@ local func = function(self, unit)
         if(unit == "player") then
             self:Tag(hpp, '[freeb:hp]')
         else
-            self:Tag(hpp, '[freeb:pp] [freeb:hp]')
+            self:Tag(hpp, '[freeb:pp]  [freeb:hp]')
         end
     end
 
@@ -449,7 +449,7 @@ local func = function(self, unit)
         pp:SetPoint"RIGHT"
         pp:SetPoint"BOTTOM" 
 
-        pp.frequentUpdates = true
+        pp.frequentUpdates = false
         pp.Smooth = true
 
         local ppbg = pp:CreateTexture(nil, "BORDER")

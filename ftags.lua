@@ -49,11 +49,16 @@ end
 oUF.TagEvents['freeb:hp'] = 'UNIT_HEALTH'
 
 oUF.Tags['freeb:pp'] = function(u)
-    local _, str = UnitPowerType(u)
+    local _, str, r, g, b = UnitPowerType(u)
     local power = UnitPower(u)
 
-    if str and power > 0 then
-        return hex(oUF.colors.power[str])..siValue(power).."|r"
+    if power > 0 then
+        local t = oUF.colors.power[str]
+        if t then
+            r, g, b = t[1], t[2], t[3]
+        end
+
+        return hex(r, g, b)..siValue(power).."|r"
     end
 end
 oUF.TagEvents['freeb:pp'] = 'UNIT_POWER'
