@@ -20,7 +20,7 @@ local classColorbars = false
 local powerColor = true
 local powerClass = false
 
-local portraits = true
+local portraits = false
 local onlyShowPlayer = false -- only show player debuffs on target
 
 local pixelborder = false
@@ -338,7 +338,7 @@ end
 local castbar = function(self, unit)
     local u = unit:match('[^%d]+')
     if multicheck(u, "target", "player", "focus", "pet", "boss") then
-        local cb = createStatusbar(self, texture, "OVERLAY", 16, 150, 1, .25, .35, .5)
+        local cb = createStatusbar(self, texture, "OVERLAY", 16, portraits and 160 or width, 1, .25, .35, .5)
         cb:SetToplevel(true)
 
         cb.Spark = cb:CreateTexture(nil, "OVERLAY")
@@ -360,12 +360,12 @@ local castbar = function(self, unit)
         cb.Text:SetPoint("RIGHT", cb.Time, "LEFT")
 
         cb.Icon = cb:CreateTexture(nil, 'ARTWORK')
-        cb.Icon:SetSize(28, 28)
+        cb.Icon:SetSize(22, 22)
         cb.Icon:SetTexCoord(.1, .9, .1, .9)
 
         if (unit == "player") then
             cb:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -10)
-            cb.Icon:SetPoint("TOPLEFT", cb, "TOPRIGHT", 7, 0)
+            cb.Icon:SetPoint("BOTTOMLEFT", cb, "BOTTOMRIGHT", 7, 0)
 
             cb.SafeZone = cb:CreateTexture(nil,'ARTWORK')
             cb.SafeZone:SetPoint('TOPRIGHT')
@@ -374,7 +374,7 @@ local castbar = function(self, unit)
             cb.SafeZone:SetVertexColor(.9,.7,0, 1)
         else
             cb:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, -10)
-            cb.Icon:SetPoint("TOPRIGHT", cb, "TOPLEFT", -7, 0)
+            cb.Icon:SetPoint("BOTTOMRIGHT", cb, "BOTTOMLEFT", -7, 0)
         end
 
         cb.Backdrop = createBackdrop(cb, cb)
@@ -488,7 +488,7 @@ local func = function(self, unit)
 
     local leader = hp:CreateTexture(nil, "OVERLAY")
     leader:SetSize(16, 16)
-    leader:SetPoint("BOTTOMRIGHT", hp, "TOPLEFT", 10, -6)
+    leader:SetPoint("TOPLEFT", hp, "TOPLEFT", 5, 10)
     self.Leader = leader
 
     local masterlooter = hp:CreateTexture(nil, 'OVERLAY')
@@ -513,7 +513,7 @@ local func = function(self, unit)
 
     local Resting = hp:CreateTexture(nil, 'OVERLAY')
     Resting:SetSize(20, 20)
-    Resting:SetPoint('TOP', Combat, 'BOTTOM', 8, 0)
+    Resting:SetPoint('BOTTOMLEFT', Combat, 'TOPLEFT', 0, 4)
     self.Resting = Resting
 
     local QuestIcon = hp:CreateTexture(nil, 'OVERLAY')
@@ -578,7 +578,7 @@ local UnitSpecific = {
         if portraits then
             self.Portrait = CreateFrame("PlayerModel", nil, self)
             self.Portrait:SetWidth(60)
-            self.Portrait:SetHeight(40)
+            self.Portrait:SetHeight(36)
             self.Portrait:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, -10)
             self.PorBackdrop = createBackdrop(self, self.Portrait)
         end
@@ -594,12 +594,12 @@ local UnitSpecific = {
             end
 
             local bars = CreateFrame("Frame", nil, self)
-            bars:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -33)
-            bars:SetSize(150/count - 5, 16)
+            bars:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -31)
+            bars:SetSize(160/count - 5, 16)
 
             local i = count
             for index = 1, count do
-                bars[i] = createStatusbar(bars, texture, nil, 16, 150/count-5, 1, 1, 1, 1)
+                bars[i] = createStatusbar(bars, texture, nil, 14, (portraits and 160 or width)/count-5, 1, 1, 1, 1)
 
                 if class == "WARLOCK" then
                     local color = self.colors.power["SOUL_SHARDS"]
@@ -610,7 +610,7 @@ local UnitSpecific = {
                 end 
 
                 if i == count then
-                    bars[i]:SetPoint("TOPLEFT", bars, "TOPLEFT")
+                    bars[i]:SetPoint("TOPRIGHT", bars, "TOPRIGHT")
                 else
                     bars[i]:SetPoint("RIGHT", bars[i+1], "LEFT", -5, 0)
                 end
@@ -636,15 +636,15 @@ local UnitSpecific = {
 
         if class == "DRUID" then
             local ebar = CreateFrame("Frame", nil, self)
-            ebar:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -33)
-            ebar:SetSize(150, 16)
+            ebar:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -31)
+            ebar:SetSize(portraits and 160 or width, 14)
             ebar.bd = createBackdrop(ebar, ebar)
 
-            local lbar = createStatusbar(ebar, texture, nil, 16, 150, 0, .4, 1, 1)
+            local lbar = createStatusbar(ebar, texture, nil, 16, portraits and 160 or width, 0, .4, 1, 1)
             lbar:SetPoint("LEFT", ebar, "LEFT")
             ebar.LunarBar = lbar
 
-            local sbar = createStatusbar(ebar, texture, nil, 16, 150, 1, .6, 0, 1)
+            local sbar = createStatusbar(ebar, texture, nil, 16, portraits and 160 or width, 1, .6, 0, 1)
             sbar:SetPoint("LEFT", lbar:GetStatusBarTexture(), "RIGHT")
             ebar.SolarBar = sbar
 
@@ -667,7 +667,7 @@ local UnitSpecific = {
             self.TotemBar = {}
             self.TotemBar.Destroy = true
             for i = 1, 4 do
-                self.TotemBar[i] = createStatusbar(self, texture, nil, 16, 150/4-5, 1, 1, 1, 1)
+                self.TotemBar[i] = createStatusbar(self, texture, nil, 16, 160/4-5, 1, 1, 1, 1)
 
                 if (i == 1) then
                     self.TotemBar[i]:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -33)
@@ -872,6 +872,22 @@ local UnitSpecific = {
 
             self.Debuffs = debuffs
             self.Debuffs.num = 8
+
+            local buffs = CreateFrame("Frame", nil, self)
+            buffs:SetHeight(height)
+            buffs:SetWidth(100)
+            buffs.initialAnchor = "TOPLEFT"
+            buffs.spacing = 4
+            buffs.num = 20
+            buffs["growth-x"] = "RIGHT"
+            buffs["growth-y"] = "DOWN"
+            buffs:SetPoint("LEFT", self, "RIGHT", 4, 0)
+            buffs.size = height
+
+            buffs.PostCreateIcon = auraIcon
+            buffs.PostUpdateIcon = PostUpdateIcon
+
+            self.Buffs = buffs
         end
     end,
 
@@ -975,16 +991,16 @@ local spawnHelper = function(self, unit, ...)
 end
 
 oUF:Factory(function(self)
-    spawnHelper(self, "player", "CENTER", -225, -225)
-    spawnHelper(self, "target", "CENTER", 225, -225)
-    spawnHelper(self, "targettarget", "CENTER", 0, -225)
+    spawnHelper(self, "player", "CENTER", -225, -175)
+    spawnHelper(self, "target", "CENTER", 225, -175)
+    spawnHelper(self, "targettarget", "CENTER", 0, -175)
     spawnHelper(self, "focus", "CENTER", 580, -60)
     spawnHelper(self, "focustarget", "RIGHT", self.units.focus, "LEFT", -10, 0)
     spawnHelper(self, "pet", "RIGHT", self.units.player, "LEFT", -10, 0)
 
     if bossframes then
         for i = 1, MAX_BOSS_FRAMES do
-            spawnHelper(self,'boss' .. i, "CENTER", 580, 350 - (60 * i))
+            spawnHelper(self,'boss' .. i, "CENTER", 580, 320 - (60 * i))
         end
     end
 end)
