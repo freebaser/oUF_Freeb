@@ -48,12 +48,13 @@ oUF.Tags['freeb:hp']  = function(u)
 end
 oUF.TagEvents['freeb:hp'] = 'UNIT_HEALTH'
 
-oUF.Tags['freeb:pp'] = function(u)
-    local _, str, r, g, b = UnitPowerType(u)
+oUF.Tags['freeb:pp'] = function(u) 
     local power = UnitPower(u)
 
     if power > 0 then
+        local _, str, r, g, b = UnitPowerType(u)
         local t = oUF.colors.power[str]
+
         if t then
             r, g, b = t[1], t[2], t[3]
         end
@@ -64,14 +65,12 @@ end
 oUF.TagEvents['freeb:pp'] = 'UNIT_POWER'
 
 oUF.Tags['freeb:color'] = function(u, r)
-    local _, class = UnitClass(u)
     local reaction = UnitReaction(u, "player")
 
     if (UnitIsTapped(u) and not UnitIsTappedByPlayer(u)) then
         return hex(oUF.colors.tapped)
-    elseif (u == "pet") and GetPetHappiness() then
-        return hex(oUF.colors.happiness[GetPetHappiness()])
     elseif (UnitIsPlayer(u)) then
+        local _, class = UnitClass(u)
         return hex(oUF.colors.class[class])
     elseif reaction then
         return hex(oUF.colors.reaction[reaction])
@@ -79,7 +78,7 @@ oUF.Tags['freeb:color'] = function(u, r)
         return hex(1, 1, 1)
     end
 end
-oUF.TagEvents['freeb:color'] = 'UNIT_REACTION UNIT_HEALTH UNIT_HAPPINESS'
+oUF.TagEvents['freeb:color'] = 'UNIT_REACTION UNIT_HEALTH'
 
 oUF.Tags['freeb:name'] = function(u, r)
     local name = UnitName(r or u)

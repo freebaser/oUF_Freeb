@@ -20,7 +20,7 @@ local classColorbars = false
 local powerColor = true
 local powerClass = false
 
-local portraits = false
+local portraits = true
 local onlyShowPlayer = false -- only show player debuffs on target
 
 local pixelborder = false
@@ -239,6 +239,7 @@ local auraIcon = function(auras, button)
 
     if auraborders then
         auras.showDebuffType = true
+        --auras.showBuffType = true
         button.overlay:SetTexture(buttonTex)
         button.overlay:SetPoint("TOPLEFT", button, "TOPLEFT", -2, 2)
         button.overlay:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 2, -2)
@@ -360,7 +361,7 @@ local castbar = function(self, unit)
         cb.Text:SetPoint("RIGHT", cb.Time, "LEFT")
 
         cb.Icon = cb:CreateTexture(nil, 'ARTWORK')
-        cb.Icon:SetSize(22, 22)
+        cb.Icon:SetSize(20, 20)
         cb.Icon:SetTexCoord(.1, .9, .1, .9)
 
         if (unit == "player") then
@@ -523,7 +524,7 @@ local func = function(self, unit)
 
     local PhaseIcon = hp:CreateTexture(nil, 'OVERLAY')
     PhaseIcon:SetSize(24, 24)
-    PhaseIcon:SetPoint('RIGHT', QuestIcon, 'LEFT')
+    PhaseIcon:SetPoint('BOTTOMRIGHT', hp, 12, -15)
     self.PhaseIcon = PhaseIcon
 
     local name = createFont(hp, "OVERLAY", font, fontsize, fontflag, 1, 1, 1)
@@ -663,33 +664,10 @@ local UnitSpecific = {
             --EclipseBarFrame:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -55)
         end
 
-        if IsAddOnLoaded("oUF_TotemBar") and class == "SHAMAN" then
-            self.TotemBar = {}
-            self.TotemBar.Destroy = true
-            for i = 1, 4 do
-                self.TotemBar[i] = createStatusbar(self, texture, nil, 16, 160/4-5, 1, 1, 1, 1)
-
-                if (i == 1) then
-                    self.TotemBar[i]:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -33)
-                else
-                    self.TotemBar[i]:SetPoint("RIGHT", self.TotemBar[i-1], "LEFT", -5, 0)
-                end
-                self.TotemBar[i]:SetBackdrop(backdrop)
-                self.TotemBar[i]:SetBackdropColor(0.5, 0.5, 0.5)
-                self.TotemBar[i]:SetMinMaxValues(0, 1)
-
-                self.TotemBar[i].bg = self.TotemBar[i]:CreateTexture(nil, "BORDER")
-                self.TotemBar[i].bg:SetAllPoints(self.TotemBar[i])
-                self.TotemBar[i].bg:SetTexture(texture)
-                self.TotemBar[i].bg.multiplier = 0.3
-
-                self.TotemBar[i].bd = createBackdrop(self, self.TotemBar[i])
-            end
-        end
-
         if(IsAddOnLoaded('oUF_Experience')) then
             local OnEnter = function(self)
                 UnitFrame_OnEnter(self)
+                self.Experience.text:UpdateTag()
                 self.Experience.text:Show()	
             end
 
@@ -742,18 +720,6 @@ local UnitSpecific = {
             buffs.PostUpdateIcon = PostUpdateIcon
 
             self.Buffs = buffs
-
-            if (IsAddOnLoaded('oUF_WeaponEnchant')) then
-                self.Enchant = CreateFrame('Frame', nil, self)
-                self.Enchant.size = 32
-                self.Enchant:SetHeight(32)
-                self.Enchant:SetWidth(self.Enchant.size * 3)
-                self.Enchant:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -390, -140)
-                self.Enchant["growth-y"] = "DOWN"
-                self.Enchant["growth-x"] = "LEFT"
-                self.Enchant.spacing = 5
-                self.PostCreateEnchantIcon = auraIcon
-            end
         end
 
         if auras then 
@@ -991,10 +957,10 @@ local spawnHelper = function(self, unit, ...)
 end
 
 oUF:Factory(function(self)
-    spawnHelper(self, "player", "CENTER", -225, -175)
-    spawnHelper(self, "target", "CENTER", 225, -175)
+    spawnHelper(self, "player", "CENTER", -215, -175)
+    spawnHelper(self, "target", "CENTER", 215, -175)
     spawnHelper(self, "targettarget", "CENTER", 0, -175)
-    spawnHelper(self, "focus", "CENTER", 580, -60)
+    spawnHelper(self, "focus", "CENTER", 475, 0)
     spawnHelper(self, "focustarget", "RIGHT", self.units.focus, "LEFT", -10, 0)
     spawnHelper(self, "pet", "RIGHT", self.units.player, "LEFT", -10, 0)
 

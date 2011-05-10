@@ -27,7 +27,7 @@ local func = function(self, unit)
     self:SetScript("OnEnter", UnitFrame_OnEnter)
     self:SetScript("OnLeave", UnitFrame_OnLeave)
 
-    self:RegisterForClicks"AnyDown"
+    self:RegisterForClicks"AnyUp"
 
     self.FrameBackdrop = ns.backdrop(self, self)
 
