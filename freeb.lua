@@ -11,7 +11,7 @@ local scale = 1.0
 local hpheight = .85 -- .70 - .90 
 
 local overrideBlizzbuffs = false
-local castbars = true   -- disable castbars
+local castbars = false   -- disable castbars
 local auras = true  -- disable all auras
 local bossframes = true
 local auraborders = false
@@ -120,6 +120,7 @@ ns.backdrop = createBackdrop
 local fixStatusbar = function(bar)
     bar:GetStatusBarTexture():SetHorizTile(false)
     bar:GetStatusBarTexture():SetVertTile(false)
+    --bar:SetReverseFill(true)
 end
 
 local createStatusbar = function(parent, tex, layer, height, width, r, g, b, alpha)
@@ -409,7 +410,7 @@ local func = function(self, unit)
     hp:SetPoint"LEFT"
     hp:SetPoint"RIGHT"
 
-    if(unit == "targettarget" or unit == "focustarget") then
+    if(unit == "targettarget" or unit == "focustarget" or unit == "focus") then
         hp:SetHeight(height)
     else
         hp:SetHeight(height*hpheight)
@@ -430,7 +431,7 @@ local func = function(self, unit)
         hpbg:SetVertexColor(.3,.3,.3)
     end
 
-    if not (unit == "targettarget" or unit == "focustarget") then
+    if not (unit == "targettarget" or unit == "focustarget" or unit == "focus") then
         local hpp = createFont(hp, "OVERLAY", font, fontsize, fontflag, 1, 1, 1)
         hpp:SetPoint("RIGHT", hp, -2, 0)
 
@@ -439,12 +440,14 @@ local func = function(self, unit)
         else
             self:Tag(hpp, '[freeb:pp]  [freeb:hp]')
         end
+
+        hp.hpp = hpp
     end
 
     hp.bg = hpbg
     self.Health = hp
 
-    if not (unit == "targettarget" or unit == "focustarget") then
+    if not (unit == "targettarget" or unit == "focustarget" or unit == "focus") then
         local pp = createStatusbar(self, texture, nil, height*-(hpheight-.95), nil, 1, 1, 1, 1)
         pp:SetPoint"LEFT"
         pp:SetPoint"RIGHT"
@@ -528,7 +531,7 @@ local func = function(self, unit)
     self.PhaseIcon = PhaseIcon
 
     local name = createFont(hp, "OVERLAY", font, fontsize, fontflag, 1, 1, 1)
-    if(unit == "targettarget" or unit == "focustarget") then
+    if(unit == "targettarget" or unit == "focustarget" or unit == "focus") then
         name:SetPoint("LEFT", hp)
         name:SetPoint("RIGHT", hp)
 
@@ -539,7 +542,7 @@ local func = function(self, unit)
         end
     else
         name:SetPoint("LEFT", hp, 2, 0)
-        name:SetPoint("RIGHT", hp, -95, 0)
+        name:SetPoint("RIGHT", hp.hpp, "LEFT")
         name:SetJustifyH"LEFT"
 
         if(unit == "player") then
@@ -561,7 +564,7 @@ local func = function(self, unit)
     end
 
     self:SetSize(width, height)
-    if(unit == "targettarget" or unit == "focustarget") then
+    if(unit == "targettarget" or unit == "focustarget" or unit == "focus") then
         self:SetSize(150, height)
     end
 
@@ -813,7 +816,7 @@ local UnitSpecific = {
     --========================--
     --  Focus
     --========================--
-    focus = function(self, ...)
+    --[[focus = function(self, ...)
         func(self, ...)
 
         if portraits then
@@ -855,7 +858,12 @@ local UnitSpecific = {
 
             self.Buffs = buffs
         end
+    end,]]
+	focus = function(self, ...)
+        func(self, ...)
+
     end,
+
 
     --========================--
     --  Focus Target
@@ -957,16 +965,16 @@ local spawnHelper = function(self, unit, ...)
 end
 
 oUF:Factory(function(self)
-    spawnHelper(self, "player", "CENTER", -215, -175)
-    spawnHelper(self, "target", "CENTER", 215, -175)
-    spawnHelper(self, "targettarget", "CENTER", 0, -175)
-    spawnHelper(self, "focus", "CENTER", 475, 0)
+    spawnHelper(self, "player", "CENTER", -215, -250)
+    spawnHelper(self, "target", "CENTER", 215, -250)
+    spawnHelper(self, "targettarget", "CENTER", 0, -250)
+    spawnHelper(self, "focus", "CENTER", 540, -160)
     spawnHelper(self, "focustarget", "RIGHT", self.units.focus, "LEFT", -10, 0)
     spawnHelper(self, "pet", "RIGHT", self.units.player, "LEFT", -10, 0)
 
     if bossframes then
         for i = 1, MAX_BOSS_FRAMES do
-            spawnHelper(self,'boss' .. i, "CENTER", 580, 320 - (60 * i))
+            spawnHelper(self,'boss' .. i, "CENTER", 580, 225 - (60 * i))
         end
     end
 end)

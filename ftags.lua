@@ -1,3 +1,4 @@
+local floor = math.floor
 
 local siValue = function(val)
     if(val >= 1e6) then
@@ -44,12 +45,12 @@ end
 
 oUF.Tags['freeb:hp']  = function(u) 
     local min, max = UnitHealth(u), UnitHealthMax(u)
-    return siValue(min).." | "..math.floor(min/max*100+.5).."%"
+    return siValue(min).." | "..floor(min/max*100+.5).."%"
 end
 oUF.TagEvents['freeb:hp'] = 'UNIT_HEALTH'
 
 oUF.Tags['freeb:pp'] = function(u) 
-    local power = UnitPower(u)
+    local power, powermax = UnitPower(u), UnitPowerMax(u)
 
     if power > 0 then
         local _, str, r, g, b = UnitPowerType(u)
@@ -59,7 +60,10 @@ oUF.Tags['freeb:pp'] = function(u)
             r, g, b = t[1], t[2], t[3]
         end
 
-        return hex(r, g, b)..siValue(power).."|r"
+        local perc = floor((power/powermax)*100+.5)
+        perc = powermax > 150 and " | "..perc.."%|r" or ""
+        
+        return hex(r, g, b)..siValue(power)..perc.."|r"
     end
 end
 oUF.TagEvents['freeb:pp'] = 'UNIT_POWER'
@@ -123,7 +127,7 @@ oUF.Tags['freeb:maxxp'] = function(unit)
 end
 
 oUF.Tags['freeb:perxp'] = function(unit)
-    return math.floor(UnitXP(unit) / UnitXPMax(unit) * 100 + 0.5)
+    return floor(UnitXP(unit) / UnitXPMax(unit) * 100 + 0.5)
 end
 
 oUF.TagEvents['freeb:curxp'] = 'PLAYER_XP_UPDATE PLAYER_LEVEL_UP'
