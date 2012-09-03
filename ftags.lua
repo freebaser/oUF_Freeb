@@ -22,7 +22,7 @@ end
 oUF.colors.power['MANA'] = {.31,.45,.63}
 oUF.colors.power['RAGE'] = {.69,.31,.31}
 
-oUF.Tags['freeb:lvl'] = function(u) 
+oUF.Tags.Methods['freeb:lvl'] = function(u) 
     local level = UnitLevel(u)
     local typ = UnitClassification(u)
     local color = GetQuestDifficultyColor(level)
@@ -43,13 +43,13 @@ oUF.Tags['freeb:lvl'] = function(u)
     end
 end
 
-oUF.Tags['freeb:hp']  = function(u) 
+oUF.Tags.Methods['freeb:hp']  = function(u) 
     local min, max = UnitHealth(u), UnitHealthMax(u)
     return siValue(min).." | "..floor(min/max*100+.5).."%"
 end
-oUF.TagEvents['freeb:hp'] = 'UNIT_HEALTH'
+oUF.Tags.Events['freeb:hp'] = 'UNIT_HEALTH'
 
-oUF.Tags['freeb:pp'] = function(u) 
+oUF.Tags.Methods['freeb:pp'] = function(u) 
     local power, powermax = UnitPower(u), UnitPowerMax(u)
 
     if power > 0 then
@@ -66,9 +66,9 @@ oUF.Tags['freeb:pp'] = function(u)
         return hex(r, g, b)..siValue(power)..perc.."|r"
     end
 end
-oUF.TagEvents['freeb:pp'] = 'UNIT_POWER'
+oUF.Tags.Events['freeb:pp'] = 'UNIT_POWER'
 
-oUF.Tags['freeb:color'] = function(u, r)
+oUF.Tags.Methods['freeb:color'] = function(u, r)
     local reaction = UnitReaction(u, "player")
 
     if (UnitIsTapped(u) and not UnitIsTappedByPlayer(u)) then
@@ -82,28 +82,28 @@ oUF.Tags['freeb:color'] = function(u, r)
         return hex(1, 1, 1)
     end
 end
-oUF.TagEvents['freeb:color'] = 'UNIT_REACTION UNIT_HEALTH'
+oUF.Tags.Events['freeb:color'] = 'UNIT_REACTION UNIT_HEALTH'
 
-oUF.Tags['freeb:name'] = function(u, r)
+oUF.Tags.Methods['freeb:name'] = function(u, r)
     local name = UnitName(r or u)
     return name
 end
-oUF.TagEvents['freeb:name'] = 'UNIT_NAME_UPDATE'
+oUF.Tags.Events['freeb:name'] = 'UNIT_NAME_UPDATE'
 
-oUF.Tags['freeb:info'] = function(u)
+oUF.Tags.Methods['freeb:info'] = function(u)
     if UnitIsDead(u) then
-        return oUF.Tags['freeb:lvl'](u).."|cffCFCFCF RIP|r"
+        return oUF.Tags.Methods['freeb:lvl'](u).."|cffCFCFCF RIP|r"
     elseif UnitIsGhost(u) then
-        return oUF.Tags['freeb:lvl'](u).."|cffCFCFCF Gho|r"
+        return oUF.Tags.Methods['freeb:lvl'](u).."|cffCFCFCF Gho|r"
     elseif not UnitIsConnected(u) then
-        return oUF.Tags['freeb:lvl'](u).."|cffCFCFCF D/C|r"
+        return oUF.Tags.Methods['freeb:lvl'](u).."|cffCFCFCF D/C|r"
     else
-        return oUF.Tags['freeb:lvl'](u)
+        return oUF.Tags.Methods['freeb:lvl'](u)
     end
 end
-oUF.TagEvents['freeb:info'] = 'UNIT_HEALTH'
+oUF.Tags.Events['freeb:info'] = 'UNIT_HEALTH'
 
-oUF.Tags['freebraid:info'] = function(u)
+oUF.Tags.Methods['freebraid:info'] = function(u)
     local _, class = UnitClass(u)
 
     if class then
@@ -116,25 +116,25 @@ oUF.Tags['freebraid:info'] = function(u)
         end
     end
 end
-oUF.TagEvents['freebraid:info'] = 'UNIT_HEALTH UNIT_CONNECTION'
+oUF.Tags.Events['freebraid:info'] = 'UNIT_HEALTH UNIT_CONNECTION'
 
-oUF.Tags['freeb:curxp'] = function(unit)
+oUF.Tags.Methods['freeb:curxp'] = function(unit)
     return siValue(UnitXP(unit))
 end
 
-oUF.Tags['freeb:maxxp'] = function(unit)
+oUF.Tags.Methods['freeb:maxxp'] = function(unit)
     return siValue(UnitXPMax(unit))
 end
 
-oUF.Tags['freeb:perxp'] = function(unit)
+oUF.Tags.Methods['freeb:perxp'] = function(unit)
     return floor(UnitXP(unit) / UnitXPMax(unit) * 100 + 0.5)
 end
 
-oUF.TagEvents['freeb:curxp'] = 'PLAYER_XP_UPDATE PLAYER_LEVEL_UP'
-oUF.TagEvents['freeb:maxxp'] = 'PLAYER_XP_UPDATE PLAYER_LEVEL_UP'
-oUF.TagEvents['freeb:perxp'] = 'PLAYER_XP_UPDATE PLAYER_LEVEL_UP'
+oUF.Tags.Events['freeb:curxp'] = 'PLAYER_XP_UPDATE PLAYER_LEVEL_UP'
+oUF.Tags.Events['freeb:maxxp'] = 'PLAYER_XP_UPDATE PLAYER_LEVEL_UP'
+oUF.Tags.Events['freeb:perxp'] = 'PLAYER_XP_UPDATE PLAYER_LEVEL_UP'
 
-oUF.Tags['freeb:altpower'] = function(u)
+oUF.Tags.Methods['freeb:altpower'] = function(u)
     local cur = UnitPower(u, ALTERNATE_POWER_INDEX)
     local max = UnitPowerMax(u, ALTERNATE_POWER_INDEX)
 
@@ -144,4 +144,4 @@ oUF.Tags['freeb:altpower'] = function(u)
         return format("%d", per > 0 and per or 0).."%"
     end
 end
-oUF.TagEvents['freeb:altpower'] = "UNIT_POWER UNIT_MAXPOWER"
+oUF.Tags.Events['freeb:altpower'] = "UNIT_POWER UNIT_MAXPOWER"

@@ -1,4 +1,4 @@
-## Interface: 40300
+## Interface: 50001
 ## Title: oUF_Freeb
 ## Author: Freebaser
 ## Version: @project-version@
@@ -8,4 +8,3 @@
 
 ftags.lua
 freeb.lua
-freebraid.lua
