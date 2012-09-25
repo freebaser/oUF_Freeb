@@ -165,7 +165,7 @@ end
 
 local PostAltUpdate = function(altpp, min, cur, max)
 	local self = altpp.__owner
-	
+
 	if self.Experience then
 		self.Experience:Hide()
 	end
@@ -598,7 +598,7 @@ local UnitSpecific = {
 					local color = self.colors.power["MANA"]
 					bars[i]:SetStatusBarColor(color[1], color[2], color[3])
 				end 
-				
+
 				if i == count then
 					bars[i]:SetPoint("TOPRIGHT", bars, "TOPRIGHT")
 				else
@@ -630,16 +630,16 @@ local UnitSpecific = {
 			local count = 5
 			local i = count
 			for index = 1, count do
-      		local Icon = self:CreateTexture(nil, 'BACKGROUND')
+				local Icon = self:CreateTexture(nil, 'BACKGROUND')
 				Icon:SetTexture(texture)
-      		Icon:SetSize((110)/count, 16)
-      		Icon:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', -index * (Icon:GetWidth()+5), -32)
-   
-      		ClassIcons[i] = Icon
+				Icon:SetSize((110)/count, 16)
+				Icon:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', -index * (Icon:GetWidth()+5), -32)
+
+				ClassIcons[i] = Icon
 				i=i-1
-   		end
-   
-   		self.ClassIcons = ClassIcons
+			end
+
+			self.ClassIcons = ClassIcons
 		end
 
 		if(IsAddOnLoaded('oUF_Experience')) then
