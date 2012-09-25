@@ -58,7 +58,7 @@ local dropdown = CreateFrame('Frame', ADDON_NAME .. 'DropDown', UIParent, 'UIDro
 
 local function menu(self)
 	dropdown:SetParent(self)
-	return ToggleDropDownMenu(1, nil, dropdown, 'cursor', 0, 0)
+	return ToggleDropDownMenu(1, nil, dropdown, self:GetName(), 0, 0)
 end
 
 local init = function(self)
@@ -151,16 +151,13 @@ local createFont = function(parent, layer, font, fontsiz, outline, r, g, b, just
 	return str
 end
 
-local xphide
 local AltPower = function(self)
 	local barType, minPower, _, _, _, hideFromOthers = UnitAlternatePowerInfo(self.unit)
 
-	if barType and self.Experience:IsShown() then
+	if barType and self.Experience then
 		self.Experience:Hide()
-		xphide = true
-	elseif xphide then
+	else
 		self.Experience:Show()
-		xphide = nil
 	end
 
 	self.AltPowerBar.Text:UpdateTag()
@@ -168,6 +165,10 @@ end
 
 local PostAltUpdate = function(altpp, min, cur, max)
 	local self = altpp.__owner
+	
+	if self.Experience then
+		self.Experience:Hide()
+	end
 
 	local tPath, r, g, b = UnitAlternatePowerTextureInfo(self.unit, 2)
 
@@ -176,6 +177,14 @@ local PostAltUpdate = function(altpp, min, cur, max)
 	else
 		altpp:SetStatusBarColor(1, 1, 1, .8)
 	end 
+end
+
+local ExpPostUpdate = function(exp, unit, min, max)
+	local self = exp.__owner
+
+	if self.AltPowerBar and self.AltPowerBar:IsShown() then
+		exp:Hide()
+	end
 end
 
 local GetTime = GetTime
@@ -241,40 +250,31 @@ local auraIcon = function(auras, button)
 	button.remaining = remaining
 end
 
-local PostUpdateIcon
-do
-	local playerUnits = {
-		player = true,
-		pet = true,
-		vehicle = true,
-	}
+local PostUpdateIcon = function(icons, unit, icon, index, offset)
+	local name, _, _, _, dtype, duration, expirationTime, unitCaster = UnitAura(unit, index, icon.filter)
 
-	PostUpdateIcon = function(icons, unit, icon, index, offset)
-		local name, _, _, _, dtype, duration, expirationTime, unitCaster = UnitAura(unit, index, icon.filter)
-
-		local texture = icon.icon
-		if playerUnits[icon.owner] or debuffFilter[name] or UnitIsFriend('player', unit) or not icon.debuff then
-			texture:SetDesaturated(false)
-		else
-			texture:SetDesaturated(true)
-		end
-
-		if duration and duration > 0 then
-			icon.remaining:Show()
-		else
-			icon.remaining:Hide()
-		end
-
-		--[[if icon.debuff then
-		icon.bg:SetBackdropBorderColor(.4, 0, 0)
-		else
-		icon.bg:SetBackdropBorderColor(0, 0, 0)
-		end]]
-
-		icon.duration = duration
-		icon.expires = expirationTime
-		icon:SetScript("OnUpdate", CreateAuraTimer)
+	local texture = icon.icon
+	if icon.isPlayer or debuffFilter[name] or UnitIsFriend('player', unit) or not icon.isDebuff then
+		texture:SetDesaturated(false)
+	else
+		texture:SetDesaturated(true)
 	end
+
+	if duration and duration > 0 then
+		icon.remaining:Show()
+	else
+		icon.remaining:Hide()
+	end
+
+	--[[if icon.isDebuff then
+	icon.bg:SetBackdropBorderColor(.4, 0, 0)
+	else
+	icon.bg:SetBackdropBorderColor(0, 0, 0)
+	end]]
+
+	icon.duration = duration
+	icon.expires = expirationTime
+	icon:SetScript("OnUpdate", CreateAuraTimer)
 end
 
 local aurafilter = {
@@ -404,7 +404,7 @@ local func = function(self, unit)
 		hp:SetHeight(height*hpheight)
 	end
 
-	hp.frequentUpdates = true
+	hp.frequentUpdates = false
 	hp.Smooth = true
 
 	local hpbg = hp:CreateTexture(nil, "BORDER")
@@ -552,6 +552,7 @@ local func = function(self, unit)
 	end
 
 	self:SetSize(width, height)
+	--if(unit == "targettarget" or unit == "focustarget" or unit == "focus" or unit:match('[^%d]+') == "boss") then
 	if(unit == "targettarget" or unit == "focustarget" or unit == "focus") then
 		self:SetSize(150, height)
 	end
@@ -576,31 +577,28 @@ local UnitSpecific = {
 		end
 
 		local _, class = UnitClass("player")
-		-- Runes, Shards, HolyPower
-		if multicheck(class, "DEATHKNIGHT", "WARLOCK", "PALADIN") then
+		-- Runes, DruidMana
+		if multicheck(class, "DEATHKNIGHT", "DRUID") then
 			local count
 			if class == "DEATHKNIGHT" then 
-				count = 6 
-			else 
-				count = 3 
+				count = 6
+			else
+				count = 1
 			end
 
 			local bars = CreateFrame("Frame", nil, self)
-			bars:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -31)
+			bars:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT", 0, -32)
 			bars:SetSize(160/count - 5, 16)
 
 			local i = count
 			for index = 1, count do
 				bars[i] = createStatusbar(bars, texture, nil, 14, (portraits and 160 or width)/count-5, 1, 1, 1, 1)
 
-				if class == "WARLOCK" then
-					local color = self.colors.power["SOUL_SHARDS"]
-					bars[i]:SetStatusBarColor(color[1], color[2], color[3])
-				elseif class == "PALADIN" then
-					local color = self.colors.power["HOLY_POWER"]
+				if class == "DRUID" then
+					local color = self.colors.power["MANA"]
 					bars[i]:SetStatusBarColor(color[1], color[2], color[3])
 				end 
-
+				
 				if i == count then
 					bars[i]:SetPoint("TOPRIGHT", bars, "TOPRIGHT")
 				else
@@ -610,6 +608,7 @@ local UnitSpecific = {
 				bars[i].bg = bars[i]:CreateTexture(nil, "BACKGROUND")
 				bars[i].bg:SetAllPoints(bars[i])
 				bars[i].bg:SetTexture(texture)
+				bars[i].bg:SetVertexColor(.1, .1, .1)
 				bars[i].bg.multiplier = .2
 
 				bars[i].bd = createBackdrop(bars[i], bars[i])
@@ -617,13 +616,30 @@ local UnitSpecific = {
 			end
 
 			if class == "DEATHKNIGHT" then
-				bars[3], bars[4], bars[5], bars[6] = bars[5], bars[6], bars[3], bars[4]
+				--bars[3], bars[4], bars[5], bars[6] = bars[5], bars[6], bars[3], bars[4]
 				self.Runes = bars
-			elseif class == "WARLOCK" then
-				self.SoulShards = bars
-			elseif class == "PALADIN" then
-				self.HolyPower = bars
+			else
+				self.DruidMana = bars[1]
+				self.DruidMana.bg = bars[1].bg
 			end
+		end
+
+		-- Warlock, Paladin, Priest Icons
+		if multicheck(class, "WARLOCK", "PRIEST", "PALADIN", "MONK") then
+			local ClassIcons = {}
+			local count = 5
+			local i = count
+			for index = 1, count do
+      		local Icon = self:CreateTexture(nil, 'BACKGROUND')
+				Icon:SetTexture(texture)
+      		Icon:SetSize((110)/count, 16)
+      		Icon:SetPoint('TOPRIGHT', self, 'BOTTOMRIGHT', -index * (Icon:GetWidth()+5), -32)
+   
+      		ClassIcons[i] = Icon
+				i=i-1
+   		end
+   
+   		self.ClassIcons = ClassIcons
 		end
 
 		if(IsAddOnLoaded('oUF_Experience')) then
@@ -664,12 +680,15 @@ local UnitSpecific = {
 
 			self:RegisterEvent('UNIT_POWER_BAR_SHOW', AltPower)
 			self:RegisterEvent('UNIT_POWER_BAR_HIDE', AltPower)
+
+			self.Experience.PostUpdate = ExpPostUpdate
 		end
 
 		if overrideBlizzbuffs then
 			local buffs = CreateFrame("Frame", nil, self)
 			buffs:SetHeight(36)
 			buffs:SetWidth(36*12)
+			buffs.size = 36
 			buffs.initialAnchor = "TOPRIGHT"
 			buffs.spacing = 5
 			buffs.num = 40
@@ -688,9 +707,9 @@ local UnitSpecific = {
 			local debuffs = CreateFrame("Frame", nil, self)
 			debuffs:SetHeight(height+2)
 			debuffs:SetWidth(width)
+			debuffs.size = height+2
 			debuffs:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 4)
 			debuffs.spacing = 4
-			debuffs.size = height+2
 			debuffs.initialAnchor = "BOTTOMLEFT"
 
 			debuffs.PostCreateIcon = auraIcon
@@ -762,6 +781,7 @@ local UnitSpecific = {
 			Auras.PostUpdateIcon = PostUpdateIcon
 			Auras.CustomFilter = CustomFilter
 
+			-- Move all auras to top (debuffs and buffs should be disabled)
 			--self.Auras = Auras
 			--self.Auras.numDebuffs = 16
 			--self.Auras.numBuffs = 15
@@ -819,17 +839,14 @@ local UnitSpecific = {
 	end
 	end,]]
 	focus = function(self, ...)
-	func(self, ...)
-
+		func(self, ...)
 	end,
-
 
 	--========================--
 	--  Focus Target
 	--========================--
 	focustarget = function(self, ...)
 		func(self, ...)
-
 	end,
 
 	--========================--
