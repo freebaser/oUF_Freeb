@@ -1,10 +1,10 @@
-## Interface: 50001
+## Interface: 70000
 ## Title: oUF_Freeb
 ## Author: Freebaser
 ## Version: @project-version@
-## Notes: oUF layout.
+## Notes: oUF layout
 ## Dependencies: oUF
-## OptionalDeps: oUF_Experience
 
-ftags.lua
-freeb.lua
+lib.lua
+tags.lua
+main.lua
