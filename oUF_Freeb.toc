@@ -1,4 +1,4 @@
-## Interface: 70000
+## Interface: 80000
 ## Title: oUF_Freeb
 ## Author: Freebaser
 ## Version: @project-version@

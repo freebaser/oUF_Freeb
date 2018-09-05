@@ -1,5 +1,7 @@
 local ADDON_NAME, ns = ...
 
+local _, playerClass = UnitClass('player')
+
 local SCALE = 1.1
 local WIDTH = 210
 local HEIGHT = 32
@@ -34,18 +36,18 @@ local fadeMe = function(self)
 	self.fadeOut = true
 end
 
-local PostHealthUpdate = function(hp, unit, min, max)
+local PostHealthUpdate = function(hp, unit, cur, max)
 	local self = hp.__owner
 	if(self.fadeOut) then
-		self.isMax = min == max
+		self.isMax = cur == max
 		fadeOut(self)
 	end
 end
 
-local PostPowerUpdate = function(pp, unit, min, max)
+local PostPowerUpdate = function(pp, unit, cur, min, max)
 	local self = pp.__owner
 
-	if(min == 0 or UnitIsDeadOrGhost(unit)) then
+	if(cur == 0 or UnitIsDeadOrGhost(unit)) then
 		self.Health:SetHeight(HEIGHT)
 		pp:SetHeight(0.01)
 	else
@@ -116,7 +118,7 @@ local Shared = function(self, unit)
 	pp:SetHeight(ppHeight)
 	pp.frequentUpdates = true
 	pp.colorPower = true
-	pp.displayAltPower = true
+	pp.displayAltPower = false
 	pp:SetPoint"LEFT"
 	pp:SetPoint"RIGHT"
 	pp:SetPoint"BOTTOM"
@@ -128,7 +130,7 @@ local Shared = function(self, unit)
 	ppText:SetPoint("BOTTOM", hp, 0, 1)
 	ppText:SetJustifyH"LEFT"
 	ppText:SetFontObject(ns.FreebFontSmall)
-	self:Tag(ppText, "[freeb:pp]")
+	self:Tag(ppText, "[powercolor][freeb:pp]")
 
 	local nameText = overlay:CreateFontString(nil, "OVERLAY")
 	nameText:SetPoint("TOPLEFT", self.Health, "TOPLEFT", 2, -2)
@@ -144,49 +146,43 @@ local Shared = function(self, unit)
 	lvlText:SetJustifyH"LEFT"
 	lvlText:SetFontObject(ns.FreebFontSmall)
 	lvlText:SetTextColor(1, 1, 1)
-	self:Tag(lvlText, "[level][plus] [|cffCC00FF>rare<|r][resting]")
+	self:Tag(lvlText, "|cffCFCF00[level][plus]|r [|cffCC00FF>rare<|r][resting]")
 
 	local leader = hp:CreateTexture(nil, "OVERLAY")
 	leader:SetSize(14, 14)
 	leader:SetPoint("BOTTOMLEFT", hp, "TOPLEFT", 2, -4)
 
-	self.Leader = leader
-
-	local masterlooter = hp:CreateTexture(nil, 'OVERLAY')
-	masterlooter:SetSize(14, 14)
-	masterlooter:SetPoint('LEFT', leader, 'RIGHT')
-
-	self.MasterLooter = masterlooter
+	self.LeaderIndicator = leader
 
 	local PvP = hp:CreateTexture(nil, "OVERLAY")
 	PvP:SetSize(18, 18)
 	PvP:SetPoint("TOPRIGHT", self, 8, 8)
 
-	self.PvP = PvP
+	self.PvPIndicator = PvP
 
 	local QuestIcon = hp:CreateTexture(nil, "OVERLAY")
 	QuestIcon:SetSize(16, 16)
 	QuestIcon:SetAllPoints(PvP)
 
-	self.QuestIcon = QuestIcon
+	self.QuestIndicator = QuestIcon
 
 	local Combat = hp:CreateTexture(nil, "OVERLAY")
 	Combat:SetSize(18, 18)
 	Combat:SetPoint("BOTTOMLEFT", self, -8, -8)
 
-	self.Combat = Combat
+	self.CombatIndicator = Combat
 
 	local PhaseIcon = hp:CreateTexture(nil, "OVERLAY")
 	PhaseIcon:SetSize(20, 20)
 	PhaseIcon:SetPoint("TOP", hp)
 
-	self.PhaseIcon = PhaseIcon
+	self.PhaseIndicator = PhaseIcon
 
 	local ricon = hp:CreateTexture(nil, "OVERLAY")
 	ricon:SetPoint("BOTTOM", hp, "TOP", 0, -6)
 	ricon:SetSize(14, 14)
 
-	self.RaidIcon = ricon
+	self.RaidTargetIndicator = ricon
 
 	self:SetSize(WIDTH, HEIGHT)
 	self:SetScale(SCALE)
@@ -240,7 +236,7 @@ end
 --[[ Castbar ]]--
 
 local PostCastStart = function(cb, unit)
-	if(cb.interrupt) then
+	if(cb.notInterruptible) then
 		cb.Icon:SetDesaturated(true)
 		cb:SetStatusBarColor(.66, .66, .66, .8)
 	else
@@ -295,7 +291,6 @@ local Castbar = function(self, unit)
 	cb:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, 4)
 	cb:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT")
 	cb:SetHeight(20)
-	cb:SetToplevel(true)
 
 	cb.Time = cb:CreateFontString(nil, "OVERLAY")
 	cb.Time:SetPoint("BOTTOMRIGHT", cb, 0, -2)
@@ -362,7 +357,7 @@ end
 --[[ Auras ]]--
 
 local bFilter = {
-	[212283] = true, -- Symbols of Death
+	--[212283] = true, -- Symbols of Death
 }
 
 local buffFilter = function(icons, unit, icon, ...)
@@ -380,7 +375,7 @@ local PostUpdateGapIcon = function(icons, unit, icon, visibleBuffs)
 end
 
 local PostUpdateIcon = function(icons, unit, icon, index, offset)
-	local _, _, _, _, _, _, expirationTime = UnitAura(unit, index, icon.filter)
+	local _,_,_,_,_, expirationTime = UnitAura(unit, index, icon.filter)
 
 	local texture = icon.icon
 	if(icon.isPlayer or not icon.isDebuff) then
@@ -458,6 +453,83 @@ local createAuras = function(self, size, num)
 	return auras
 end
 
+local createHeals = function(self)
+	local myBar = CreateFrame("StatusBar", nil, self)
+	myBar:SetStatusBarTexture(1,1,1, "BORDER")
+	myBar:SetStatusBarColor(0/255, 202/255, 29/255, 0.4)
+
+	myBar:ClearAllPoints()
+	myBar:SetPoint("TOP", self.Health)
+	myBar:SetPoint("BOTTOM", self.Health)
+	myBar:SetPoint("LEFT", self.Health:GetStatusBarTexture(), "RIGHT")
+	myBar:SetWidth(self:GetWidth())
+
+	local otherBar = CreateFrame("StatusBar", nil, self)
+	otherBar:SetStatusBarTexture(1,1,1, "BORDER")
+	otherBar:SetStatusBarColor(2/255, 101/255, 18/255, 0.4)
+
+	otherBar:ClearAllPoints()
+	otherBar:SetPoint("TOP", myBar)
+	otherBar:SetPoint("BOTTOM", myBar)
+	otherBar:SetPoint("LEFT", myBar:GetStatusBarTexture(), "RIGHT")
+	otherBar:SetWidth(self:GetWidth())
+
+	local absorbBar = CreateFrame("StatusBar", nil, self)
+	absorbBar:SetStatusBarTexture(1,1,1, "BORDER")
+	absorbBar:SetStatusBarColor(255/255, 255/255, 0/255, 0.4)
+
+	absorbBar:ClearAllPoints()
+	absorbBar:SetPoint("TOP", otherBar)
+	absorbBar:SetPoint("BOTTOM", otherBar)
+	absorbBar:SetPoint("LEFT", otherBar:GetStatusBarTexture(), "RIGHT")
+	absorbBar:SetWidth(self:GetWidth())
+
+	local healpredict = {
+		myBar = myBar,
+		otherBar = otherBar,
+		absorbBar = absorbBar,
+		maxOverflow = 1.05,
+		frequentUpdates = true,
+	}
+
+	self.HealthPrediction = healpredict
+end
+
+local function UpdateClassPowerColor(element, powerType)
+	local color = element.__owner.colors.power[powerType]
+	local r, g, b = color[1], color[2], color[3]
+
+	for index = 1, #element do
+		local Bar = element[index]
+
+		if(playerClass == 'ROGUE') then
+			local max = UnitPowerMax('player', Enum.PowerType.ComboPoints)
+
+			if(index == max) then
+				r, g, b = 1, 0, 0
+			elseif(index == (max-1)) then
+				r, g, b = 1, .6, 0
+			end
+		end
+
+		Bar:SetStatusBarColor(r, g, b)
+	end
+end
+
+local function PostUpdateClassPower(element, cur, max, diff, powerType)
+	if(diff) then
+		for index = 1, max do
+			local Bar = element[index]
+			Bar:SetWidth((WIDTH-((max-1)*4))/max)
+
+			if(index > 1) then
+				Bar:ClearAllPoints()
+				Bar:SetPoint('LEFT', element[index - 1], 'RIGHT', 4, 0)
+			end
+		end
+	end
+end
+
 -------------------------------------------------------------------------------
 --[[ UnitSpecific ]]--
 
@@ -468,6 +540,7 @@ local UnitSpecific = {
 		Castbar(self, ...)
 		fadeMe(self)
 		threatMe(self)
+		createHeals(self)
 
 		local buffs = createAuras(self, 20, 3)
 		buffs:SetPoint("BOTTOMRIGHT", self, "BOTTOMLEFT", -4, 0)
@@ -478,10 +551,31 @@ local UnitSpecific = {
 
 		self.Buffs = buffs
 
-		local cpText = self:CreateFontString(nil, "OVERLAY")
+		--[[local cpText = self:CreateFontString(nil, "OVERLAY")
 		cpText:SetPoint("BOTTOM", self, "TOP", 0, 4)
-		cpText:SetFontObject(ns.FreebFont)
-		self:Tag(cpText, "[freeb:cp]")
+		cpText:SetFontObject(ns.FreebFontLarge)
+		self:Tag(cpText, "[freeb:cp]")]]
+		
+		local ClassPower = {}
+		ClassPower.UpdateColor = UpdateClassPowerColor
+		ClassPower.PostUpdate = PostUpdateClassPower
+
+    	for index = 1, 10 do
+			local Bar = CreateFrame('StatusBar', nil, self)
+			Bar:SetStatusBarTexture(ns.statusbar)
+        	Bar:SetSize((WIDTH-((10-1)*4))/10, 16)
+			ns.createBackdrop(Bar)
+
+			if(index > 1) then
+				Bar:SetPoint('LEFT', ClassPower[index - 1], 'RIGHT', 4, 0)
+			else
+				Bar:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 0, -6)
+			end
+
+        	ClassPower[index] = Bar
+    	end
+
+    	self.ClassPower = ClassPower
 	end,
 
 	pet = function(self, ...)
@@ -492,13 +586,15 @@ local UnitSpecific = {
 	target = function(self, ...)
 		Shared(self, ...)
 		Castbar(self, ...)
+		createHeals(self)
 
-		local debuffs = createAuras(self, 22, 16)
+		local debuffs = createAuras(self, 28, 16)
 		debuffs:SetPoint("TOPLEFT", self, "BOTTOMLEFT", 0, -4)
 		debuffs:SetPoint("TOPRIGHT", self, "BOTTOMRIGHT")
 		debuffs.initialAnchor = "BOTTOMLEFT"
 		debuffs["growth-x"] = "RIGHT"
-		debuffs['growth-y'] = "DOWN"
+		debuffs["growth-y"] = "DOWN"
+		debuffs.onlyShowPlayer = true
 
 		self.Debuffs = debuffs
 
@@ -506,10 +602,17 @@ local UnitSpecific = {
 		buffs:SetPoint("BOTTOMRIGHT", self, "BOTTOMLEFT", -4, 0)
 		buffs.initialAnchor = "BOTTOMRIGHT"
 		buffs["growth-x"] = "LEFT"
-		buffs['growth-y'] = "DOWN"
+		buffs["growth-y"] = "DOWN"
 		buffs.showStealableBuffs = true
 
 		self.Buffs = buffs
+
+		local portrait = CreateFrame('PlayerModel', nil, self)
+		portrait:SetSize(64, 48)
+		portrait:SetPoint("TOPLEFT", self, "TOPRIGHT", 6, 0)
+		ns.createBackdrop(portrait)
+
+		self.Portrait = portrait
 	end,
 
 	targettarget = function(self, ...)
@@ -534,8 +637,8 @@ end
 local spawnHelper = function(self, unit, ...)
 	if(UnitSpecific[unit]) then
 		self:SetActiveStyle("Freeb - " .. unit:gsub("^%l", string.upper))
-	elseif(UnitSpecific[unit:match('%D+')]) then
-		self:SetActiveStyle("Freeb - " .. unit:match('%D+'):gsub("^%l", string.upper))
+	elseif(UnitSpecific[unit:match("%D+")]) then
+		self:SetActiveStyle("Freeb - " .. unit:match("%D+"):gsub("^%l", string.upper))
 	else
 		self:SetActiveStyle"Freeb"
 	end
@@ -546,9 +649,10 @@ local spawnHelper = function(self, unit, ...)
 end
 
 oUF:Factory(function(self)
-	spawnHelper(self, "player", "BOTTOM", 0, 240)
-	spawnHelper(self, "pet", "TOPLEFT", oUF_FreebPlayer, "BOTTOMLEFT", 0, -20)
-	spawnHelper(self, "target", "LEFT", oUF_FreebPlayer, "RIGHT", 20, 65)
-	spawnHelper(self, "targettarget", "TOPLEFT", oUF_FreebTarget, "TOPRIGHT", 10, 0)
+	spawnHelper(self, "player", "BOTTOM", -250, 250)
+	spawnHelper(self, "pet", "TOPRIGHT", oUF_FreebPlayer, "BOTTOMRIGHT", 0, -32)
+	--spawnHelper(self, "target", "LEFT", oUF_FreebPlayer, "RIGHT", 20, 65)
+	spawnHelper(self, "target", "BOTTOM", 250, 250)
+	spawnHelper(self, "targettarget", "BOTTOMRIGHT", oUF_FreebTarget, "TOPRIGHT", 0, 28)
 	spawnHelper(self, "focus", "RIGHT", oUF_FreebPlayer, "LEFT", -50, 0)
 end)

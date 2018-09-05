@@ -13,15 +13,13 @@ oUF.Tags.Events["freeb:hp"] = "UNIT_HEALTH UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH"
 oUF.Tags.Methods["freeb:pp"] = function(unit)
 	if(UnitIsDeadOrGhost(unit)) then return end
 
-	local ptype, ptoken = UnitPowerType(unit)
-	local t = ns.colors.power[ptoken] or ns.colors.power[ptype]
-
 	local cur, max = UnitPower(unit, ptype), UnitPowerMax(unit, ptype)
+
 	if(cur ~= 0) then
-		return Hex(t)..ns.numberize(cur)
+		return ns.numberize(cur)
 	end
 end
-oUF.Tags.Events["freeb:pp"] = "UNIT_POWER UNIT_POWER_FREQUENT UNIT_MAXPOWER"
+oUF.Tags.Events["freeb:pp"] = "UNIT_POWER_UPDATE UNIT_MAXPOWER"
 
 oUF.Tags.Methods["freeb:name"] = function(unit)
 	local name = UnitName(unit)
@@ -30,11 +28,11 @@ oUF.Tags.Methods["freeb:name"] = function(unit)
 		return Hex(r, g, b)..name
 	end
 end
-oUF.Tags.Events["freeb:name"] = "UNIT_NAME UNIT_REACTION"
+oUF.Tags.Events["freeb:name"] = "UNIT_NAME_UPDATE"
 
-local cpChar = "+"
 oUF.Tags.Methods["freeb:cp"] = function(unit)
-	local cp, max = UnitPower(unit, SPELL_POWER_COMBO_POINTS), UnitPowerMax(unit, SPELL_POWER_COMBO_POINTS)
+	local cp, max = UnitPower(unit, Enum.PowerType.ComboPoints), UnitPowerMax(unit, Enum.PowerType.ComboPoints)
+
 	if(cp > 0) then
 		local str = ""
 		for i=1, cp do
@@ -49,4 +47,4 @@ oUF.Tags.Methods["freeb:cp"] = function(unit)
 		return str
 	end
 end
-oUF.Tags.Events["freeb:cp"] = "UNIT_POWER UNIT_POWER_FREQUENT UNIT_MAXPOWER"
+oUF.Tags.Events["freeb:cp"] = "UNIT_POWER_UPDATE UNIT_MAXPOWER"

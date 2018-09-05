@@ -11,6 +11,7 @@ end
 ns.mediapath = "Interface\\AddOns\\"..ADDON_NAME.."\\media\\"
 ns.statusbar = ns.mediapath.."statusbar"
 ns.font = ns.mediapath.."font.ttf"
+--ns.font = [[Interface\Addons\SharedMedia\fonts\deja_vu\DejaVuLGCSans.ttf]]
 
 ns.FreebFont = CreateFont"FreebFont"
 ns.FreebFont:SetFont(ns.font, 12, "THINOUTLINE")
@@ -22,9 +23,14 @@ ns.FreebFontSmall:SetFont(ns.font, 10, "THINOUTLINE")
 ns.FreebFontSmall:SetShadowOffset(1, -1)
 ns.FreebFontSmall:SetTextColor(1, 1, 1)
 
+ns.FreebFontLarge = CreateFont"FreebFontLarge"
+ns.FreebFontLarge:SetFont(ns.font, 16, "THINOUTLINE")
+ns.FreebFontLarge:SetShadowOffset(1, -1)
+ns.FreebFontLarge:SetTextColor(1, 1, 1)
+
 ns.colors = setmetatable({
 	power = setmetatable({
-		["MANA"] = {.31, .45, .63}
+		["MANA"] = {.41, .55, .73}
 	}, {__index = oUF.colors.power}),
 }, {__index = oUF.colors})
 
@@ -79,7 +85,7 @@ function ns.unitColor(unit)
 
 	if(not colors) then
 		local reaction = UnitReaction(unit, "player")
-		colors = reaction and ns.colors.reaction[reaction]
+		colors = reaction and ns.colors.reaction[reaction] or {1,1,1}
 	end
 
 	return colors[1], colors[2], colors[3]
@@ -94,7 +100,7 @@ do
 
 	function ns.createBackdrop(parent, anchor)
 		local frame = CreateFrame("Frame", nil, parent)
-		frame:SetFrameStrata("LOW")
+		frame:SetFrameStrata("BACKGROUND")
 		frame:SetPoint("TOPLEFT", anchor or parent, "TOPLEFT", -3, 3)
 		frame:SetPoint("BOTTOMRIGHT", anchor or parent, "BOTTOMRIGHT", 3, -3)
 		frame:SetBackdrop(glowBorder)
@@ -241,7 +247,7 @@ do
 		}, methods)
 
 		for i=1,8 do
-			local T = self:CreateTexture(nil, 'BORDER')
+			local T = self:CreateTexture(nil, 'BACKGROUND')
 			T:SetTexture(texture)
 			Border[i] = T
 		end
