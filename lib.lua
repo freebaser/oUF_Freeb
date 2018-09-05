@@ -8,54 +8,54 @@ else
 	ns.Debug = function() end
 end
 
-ns.mediapath = "Interface\\AddOns\\"..ADDON_NAME.."\\media\\"
-ns.statusbar = ns.mediapath.."statusbar"
-ns.font = ns.mediapath.."font.ttf"
+ns.mediapath = 'Interface\\AddOns\\'..ADDON_NAME..'\\media\\'
+ns.statusbar = ns.mediapath..'statusbar'
+ns.font = ns.mediapath..'font.ttf'
 --ns.font = [[Interface\Addons\SharedMedia\fonts\deja_vu\DejaVuLGCSans.ttf]]
 
-ns.FreebFont = CreateFont"FreebFont"
-ns.FreebFont:SetFont(ns.font, 12, "THINOUTLINE")
+ns.FreebFont = CreateFont'FreebFont'
+ns.FreebFont:SetFont(ns.font, 12, 'THINOUTLINE')
 ns.FreebFont:SetShadowOffset(1, -1)
 ns.FreebFont:SetTextColor(1, 1, 1)
 
-ns.FreebFontSmall = CreateFont"FreebFontSmall"
-ns.FreebFontSmall:SetFont(ns.font, 10, "THINOUTLINE")
+ns.FreebFontSmall = CreateFont'FreebFontSmall'
+ns.FreebFontSmall:SetFont(ns.font, 10, 'THINOUTLINE')
 ns.FreebFontSmall:SetShadowOffset(1, -1)
 ns.FreebFontSmall:SetTextColor(1, 1, 1)
 
-ns.FreebFontLarge = CreateFont"FreebFontLarge"
-ns.FreebFontLarge:SetFont(ns.font, 16, "THINOUTLINE")
+ns.FreebFontLarge = CreateFont'FreebFontLarge'
+ns.FreebFontLarge:SetFont(ns.font, 16, 'THINOUTLINE')
 ns.FreebFontLarge:SetShadowOffset(1, -1)
 ns.FreebFontLarge:SetTextColor(1, 1, 1)
 
 ns.colors = setmetatable({
 	power = setmetatable({
-		["MANA"] = {.41, .55, .73}
+		['MANA'] = {.41, .55, .73}
 	}, {__index = oUF.colors.power}),
 }, {__index = oUF.colors})
 
 function ns.numberize(val)
 	if(val >= 1e6) then
-		return ("%.1fm"):format(val / 1e6)
+		return ('%.1fm'):format(val / 1e6)
 	elseif(val >= 1e3) then
-		return ("%.0fk"):format(val / 1e3)
+		return ('%.0fk'):format(val / 1e3)
 	else
-		return ("%d"):format(val)
+		return ('%d'):format(val)
 	end
 end
 
 function ns.formatTime(val)
 	if(val > 3600) then
-		return ("%dh"):format((val / 3600) + 0.5)
+		return ('%dh'):format((val / 3600) + 0.5)
 	elseif(val > 60) then
-		return ("%dm"):format((val / 60) + 0.5)
+		return ('%dm'):format((val / 60) + 0.5)
 	else
-		return ("%.0f"):format(val)
+		return ('%.0f'):format(val)
 	end
 end
 
 function ns.multiCheck(check, ...)
-	for i=1, select("#", ...) do
+	for i=1, select('#', ...) do
 		if(check == select(i, ...)) then return true end
 	end
 	return false
@@ -69,22 +69,22 @@ function ns.unitColor(unit)
 		if(class and UnitIsPlayer(unit)) then
 			-- Players have color
 			colors = ns.colors.class[class]
-		elseif(UnitCanAttack(unit, "player")) then
+		elseif(UnitCanAttack(unit, 'player')) then
 			-- Hostiles are red
 			colors = ns.colors.reaction[2]
-		elseif(UnitCanAttack("player", unit)) then
+		elseif(UnitCanAttack('player', unit)) then
 			-- Units we can attack but which are not hostile are yellow
 			colors = ns.colors.reaction[4]
 		elseif(UnitIsPVP(unit)) then
 			-- Units we can assist but are PvP flagged are green
 			colors = ns.colors.reaction[6]
 		end
-	elseif(UnitIsTapDenied(unit, "player")) then
+	elseif(UnitIsTapDenied(unit, 'player')) then
 		colors = ns.colors.tapped
 	end
 
 	if(not colors) then
-		local reaction = UnitReaction(unit, "player")
+		local reaction = UnitReaction(unit, 'player')
 		colors = reaction and ns.colors.reaction[reaction] or {1,1,1}
 	end
 
@@ -93,16 +93,16 @@ end
 
 do
 	local glowBorder = {
-		bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
-		edgeFile = ns.mediapath.."glowTex", edgeSize = 3,
+		bgFile = 'Interface\\ChatFrame\\ChatFrameBackground',
+		edgeFile = ns.mediapath..'glowTex', edgeSize = 3,
 		insets = {left = 3, right = 3, top = 3, bottom = 3}
 	}
 
 	function ns.createBackdrop(parent, anchor)
-		local frame = CreateFrame("Frame", nil, parent)
-		frame:SetFrameStrata("BACKGROUND")
-		frame:SetPoint("TOPLEFT", anchor or parent, "TOPLEFT", -3, 3)
-		frame:SetPoint("BOTTOMRIGHT", anchor or parent, "BOTTOMRIGHT", 3, -3)
+		local frame = CreateFrame('Frame', nil, parent)
+		frame:SetFrameStrata('BACKGROUND')
+		frame:SetPoint('TOPLEFT', anchor or parent, 'TOPLEFT', -3, 3)
+		frame:SetPoint('BOTTOMRIGHT', anchor or parent, 'BOTTOMRIGHT', 3, -3)
 		frame:SetBackdrop(glowBorder)
 		frame:SetBackdropColor(.05, .05, .05, 1)
 		--frame:SetBackdropColor(.5, .5, .5, 1)
@@ -317,10 +317,10 @@ do
 		end
 	end
 
-	local SetValue = CreateFrame("StatusBar").SetValue
+	local SetValue = CreateFrame('StatusBar').SetValue
 	function ns.sbSmooth(statusbar)
 		statusbar.SetValue_ = SetValue
 		statusbar.SetValue = Smooth
-		statusbar:SetScript("OnUpdate", SmoothUpdate)
+		statusbar:SetScript('OnUpdate', SmoothUpdate)
 	end
 end
